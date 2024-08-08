@@ -1,6 +1,7 @@
 // Engraving cost calculator -- Calculate the cost of engravings for a customer's ski pole.
 // Author: Cabot McTavish
 // 8/8/2024
+// To do: set display of Engraving - Ski Pole 2 to none, test
 Ecwid.OnAPILoaded.add(function() {
     Ecwid.OnPageLoaded.add(function(page) {
       if (page.type == 'PRODUCT') {
@@ -25,7 +26,7 @@ Ecwid.OnAPILoaded.add(function() {
             const gripColorSelect = gripColorWindow.querySelector('.form-control__select')
             const gripColorValue = gripColorSelect ? gripColorSelect.value : '';
             const gripColorMenu = { 'Black': 0, 'Cork': 1, 'Blue': 2, 'Green': 3, 'Pink': 4, 'Purple': 5, 'Orange': 6, 'Red': 7, 'Turquoise': 8 };
-            const gripColor = gripColorMenu[gripColorValue] || 0;
+            const gripColor = gripColorMenu[gripColorValue] || 2;
     
             
             // BASKET COLOR
