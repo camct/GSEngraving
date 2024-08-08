@@ -48,7 +48,7 @@ Ecwid.OnAPILoaded.add(function() {
             const customEngraving = [0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14, 15, 15, 16, 16, 17, 17];
             const charCount1 = customInput1 ? customInput1.value.length : 0;
             const charCount2 = customInput2 ? customInput2.value.length : 0;
-            const engraving = customEngraving[charCount1+charCount2] || 0;
+            const engraving = customEngraving[charCount1+charCount2]+1 || 0;
             const curInput1 = customInput1.value;
             const curInput2 = customInput2.value;
     
