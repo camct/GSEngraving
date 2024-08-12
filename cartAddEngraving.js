@@ -91,7 +91,7 @@ Ecwid.OnAPILoaded.add(function() {
 
         // Quantity
         const quantityCheck = document.querySelector("input[name='ec-qty']")
-        const quantityValue = quantityCheck ? quantityCheck.value : 1;        
+        const quantityValue = quantityCheck ? quantityCheck.value : 1;      
 
         // Prepare the product options to include the engraving cost
         var options = {
@@ -105,13 +105,20 @@ Ecwid.OnAPILoaded.add(function() {
             'Engraving - Ski Pole 2' : `${engravingText2}`
         }
         console.log('options', options)
+        console.log('quantity:', quantity)
         
         // Add the product to the cart with the engraving option
         Ecwid.Cart.removeProduct(-1);
         Ecwid.Cart.addProduct({
             id: page.productId,
             quantity: quantityValue,
-            options: options
+            options: options,
+            callback: function(success, product, cart, error) {
+                console.log('success', success)
+                console.log('product:', product)
+                console.log('cart:', cart)
+                console.log('error:', error)
+            }
         });
     }
 
@@ -119,12 +126,14 @@ Ecwid.OnAPILoaded.add(function() {
     if (addToCartDiv) {
         var addToCartButton = addToCartDiv.querySelector(".form-control__button")
         if (addToCartButton) {
+            console.log('Add to Bag button present')
             addToCartButton.addEventListener('click', handleAddToCart);
         }
     }
     if (addMoreDiv) {
         var addMoreButton = addMoreDiv.querySelector(".form-control__button")
         if (addMoreButton) {
+            console.log('Add More button present')
             addMoreButton.addEventListener('click',handleAddToCart)
         }
     }
