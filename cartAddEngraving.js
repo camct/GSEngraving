@@ -1,4 +1,3 @@
-<script>
 Ecwid.OnAPILoaded.add(function() {
   Ecwid.OnPageLoaded.add(function(page) {
     if (page.type === 'PRODUCT') {
@@ -91,7 +90,7 @@ Ecwid.OnAPILoaded.add(function() {
 
         // Quantity
         const quantityCheck = document.querySelector("input[name='ec-qty']")
-        const quantityValue = quantityCheck ? quantityCheck.value : 1;      
+        const quantityValue = quantityCheck ? quantityCheck.value : 1;
 
         // Prepare the product options to include the engraving cost
         var options = {
@@ -140,4 +139,3 @@ Ecwid.OnAPILoaded.add(function() {
     }
   })
 });
-</script>
