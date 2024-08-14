@@ -1,12 +1,12 @@
 Ecwid.OnAPILoaded.add(function() {
-    console.log('onApiLoaded Works')
   Ecwid.OnPageLoaded.add(function(page) {
-    console.log('OnPageLoaded works')
     if (page.type === 'PRODUCT') {
+        console.log('Page type is product!!!')
     var productIds = ['55001151', '74102380', '506210440', '570262509', '94782479']
 
     // Check if the current product ID is in the allowed list
     if (!productIds.includes(page.productId)) {return;}
+    console.log('correct product ids')
 
     // Find the engraving input field
     var engravingInput1 = document.querySelector("input[aria-label='Engraving - Ski Pole 1']");
