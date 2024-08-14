@@ -1,6 +1,8 @@
 Ecwid.OnAPILoaded.add(function() {
   Ecwid.OnPageLoaded.add(function(page) {
+    console.log('Page type is', page.type, "!!!")
     if (page.type === 'PRODUCT') {
+        console.log(page.productId)
         console.log('Page type is product!!!')
     var productIds = ['55001151', '74102380', '506210440', '570262509', '94782479']
 
