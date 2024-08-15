@@ -21,6 +21,8 @@ Ecwid.OnAPILoaded.add(function() {
         console.log('In the price updater')
         var engravingText1 = engravingInput1 ? engravingInput1.value : '';  // Get the engraving text
         var engravingText2 = engravingInput2 ? engravingInput2.value : '';  // Get the engraving text
+        console.log(engravingText1, engravingText2)
+
         const ind=[0,18,18,18,18,18,18,19.75,19.75,21.5,21.5,23.25,23.25,25,25,26.75,26.75,28.5,28.5,30.25,30.25,32,32,33.75,33.75,35.5,35.5,37.25,37.25,39,39,40.75,40.75,42.5,42.5,44.25,44.25,46,46,47.75,47.75]
 
         var charCount = engravingText1.length + engravingText2.length;  // Count the number of characters
@@ -28,12 +30,13 @@ Ecwid.OnAPILoaded.add(function() {
 
         // Update the displayed price
         var priceElement = document.querySelector('.details-product-price__value.ec-price-item.notranslate');
+        console.log(priceElement)
         var basePrice = priceElement ? parseFloat(priceElement.textContent.replace(/[^0-9.]/g, '')) : 0; // Convert price to float
         var newPrice = basePrice + engravingCost;  // Calculate the new price
 
         if (priceElement) {
             priceElement.textContent = `$${newPrice.toFixed(2)}`;
-            console.log('price being updated')
+            console.log('price being updated ${newPrice.toFixed(2)}')
         }
         }
 
