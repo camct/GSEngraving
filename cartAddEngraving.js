@@ -105,7 +105,15 @@ Ecwid.OnAPILoaded.add(function() {
             // Quantity
             const quantityCheck = document.querySelector("input[name='ec-qty']")
             const quantityValue = quantityCheck ? quantityCheck.value : 1;
-            console.log('quantity:', quantityValue);
+            if (quantityValue.type !== Number) {
+                quantityValue = 1;
+                console.log('quantity default is not a number')
+            };
+            if (!quantityValue) {
+                quantityValue = 1;
+                console.log('quantity default did not exist')
+            }
+            console.log('quantity:', quantityValue, 'and type:', quantityValue.type);
 
             // Prepare the product options to include the engraving cost
             var options = {
@@ -119,7 +127,7 @@ Ecwid.OnAPILoaded.add(function() {
                 'Engraving - Ski Pole 2' : `${engravingText2}`
             }
             console.log('options', options);
-            console.log('quantity:', quantity);
+            console.log('quantity:', quantityValue);
             
             // Add the product to the cart with the engraving option
             Ecwid.Cart.removeProduct(-1);
