@@ -9,6 +9,9 @@ Ecwid.OnAPILoaded.add(function() {
         if (!productIds.includes(page.productId)) {return;}
         console.log('correct product ids');
 
+        var basePrices = {55001151 : 109.95, 74102380 : 123.95, 506210440 : 132.00, 570262509 : 109.95, 94782479 : 71.00};
+        var basePrice = basePrices[page.productId]
+
         // Find the engraving input field
         var engravingInput1 = document.querySelector("input[aria-label='Engraving - Ski Pole 1']");
         var engravingInput2 = document.querySelector("input[aria-label='Engraving - Ski Pole 2']");
@@ -30,12 +33,11 @@ Ecwid.OnAPILoaded.add(function() {
             // Update the displayed price
             var priceElement = document.querySelector('.details-product-price__value.ec-price-item.notranslate');
             console.log('price element:', priceElement);
-            var basePrice = priceElement ? parseFloat(priceElement.textContent.replace(/[^0-9.]/g, '')) : 0; // Convert price to float
             var newPrice = basePrice + engravingCost;  // Calculate the new price
 
             if (priceElement) {
                 priceElement.textContent = `$${newPrice.toFixed(2)}`;
-                console.log('price being updated ${newPrice.toFixed(2)}');
+                console.log(`price being updated to $${newPrice.toFixed(2)}`);
             }
             }
 
