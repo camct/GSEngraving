@@ -7,7 +7,6 @@ Ecwid.OnAPILoaded.add(function() {
 
         // Check if the current product ID is in the allowed list
         if (!productIds.includes(page.productId)) {return;}
-        console.log('correct product ids');
 
         var basePrices = {55001151 : 109.95, 74102380 : 123.95, 506210440 : 132.00, 570262509 : 109.95, 94782479 : 71.00};
         var basePrice = basePrices[page.productId]
@@ -15,15 +14,14 @@ Ecwid.OnAPILoaded.add(function() {
         // Find the engraving input field
         var engravingInput1 = document.querySelector("input[aria-label='Engraving - Ski Pole 1']");
         var engravingInput2 = document.querySelector("input[aria-label='Engraving - Ski Pole 2']");
-        var addMoreDiv = document.querySelector(".form-control.form-control--button.form-control--large.form-control--secondary.form-control--flexible.form-control--animated.details-product-purchase__add-more.form-control__button--icon-center.form-control--done"); // Adjust the selector based on your theme
-        var addToCartDiv = document.querySelector(".form-control.form-control--button.form-control--large.form-control--primary.form-control--flexible.form-control--animated.details-product-purchase__add-to-bag.form-control__button--icon-center.form-control--done")
+        var addMoreDiv = document.querySelector(".form-control.form-control--button.form-control--large.form-control--secondary.form-control--flexible.form-control--animated.form-control--done.details-product-purchase__add-more"); // Adjust the selector based on your theme
+        var addToBagDiv = document.querySelector(".form-control.form-control--button.form-control--large.form-control--primary.form-control--flexible.form-control--animated.form-control--done.details-product-purchase__add-to-bag")
+        // var addToCartDiv = document.querySelector(".form-control.form-control--button.form-control--large.form-control--primary.form-control--flexible.form-control--animated.details-product-purchase__add-to-bag.form-control__button--icon-center.form-control--done")
 
         // Function to update the price
         function updatePrice() {
-            console.log('In the price updater');
             var engravingText1 = engravingInput1 ? engravingInput1.value : '';  // Get the engraving text
             var engravingText2 = engravingInput2 ? engravingInput2.value : '';  // Get the engraving text
-            console.log('engraving text:', engravingText1, 'and', engravingText2);
 
             const ind=[0,18,18,18,18,18,18,19.75,19.75,21.5,21.5,23.25,23.25,25,25,26.75,26.75,28.5,28.5,30.25,30.25,32,32,33.75,33.75,35.5,35.5,37.25,37.25,39,39,40.75,40.75,42.5,42.5,44.25,44.25,46,46,47.75,47.75]
 
@@ -32,7 +30,6 @@ Ecwid.OnAPILoaded.add(function() {
 
             // Update the displayed price
             var priceElement = document.querySelector('.details-product-price__value.ec-price-item.notranslate');
-            console.log('price element:', priceElement);
             var newPrice = basePrice + engravingCost;  // Calculate the new price
 
             if (priceElement) {
@@ -101,6 +98,10 @@ Ecwid.OnAPILoaded.add(function() {
             const lengthInput = document.querySelector("input[aria-label='Length (cm or inches)']");
             const lengthInputVal = lengthInput ? lengthInput.value : '';
             console.log('length:', lengthInputVal);
+            if (lengthInputVal==='') {
+                console.log('Length input not present')
+                return;
+            }
 
             // Quantity
             const quantityCheck = document.querySelector("input[name='ec-qty']")
@@ -145,15 +146,15 @@ Ecwid.OnAPILoaded.add(function() {
         }
 
         // Attach the click event listener to the Add to Cart button
-        if (addToCartDiv) {
-            var addToCartButton = addToCartDiv.querySelector(".form-control__button")
+        if (addToBagDiv) {
+            var addToCartButton = addToCartDiv.querySelector(".form-control__button.form-control__button--icon-center")
             if (addToCartButton) {
                 console.log('Add to Bag button present');
                 addToCartButton.addEventListener('click', handleAddToCart);
             }
         }
         if (addMoreDiv) {
-            var addMoreButton = addMoreDiv.querySelector(".form-control__button")
+            var addMoreButton = addMoreDiv.querySelector(".form-control__button.form-control__button--icon-center")
             if (addMoreButton) {
                 console.log('Add More button present');
                 addMoreButton.addEventListener('click',handleAddToCart)
