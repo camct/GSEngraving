@@ -147,7 +147,7 @@ Ecwid.OnAPILoaded.add(function() {
 
         // Attach the click event listener to the Add to Cart button
         if (addToBagDiv) {
-            var addToCartButton = addToCartDiv.querySelector(".form-control__button.form-control__button--icon-center")
+            var addToCartButton = addToBagDiv.querySelector(".form-control__button.form-control__button--icon-center")
             if (addToCartButton) {
                 console.log('Add to Bag button present');
                 addToCartButton.addEventListener('click', handleAddToCart);
