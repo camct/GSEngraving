@@ -105,7 +105,7 @@ Ecwid.OnAPILoaded.add(function() {
 
             // Quantity
             const quantityCheck = document.querySelector("input[name='ec-qty']")
-            const quantityValue = quantityCheck ? quantityCheck.value : 1;
+            var quantityValue = quantityCheck ? quantityCheck.value : 1;
             if (quantityValue.type !== Number) {
                 quantityValue = 1;
                 console.log('quantity default is not a number')
