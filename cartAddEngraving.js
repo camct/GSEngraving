@@ -8,7 +8,7 @@ Ecwid.OnAPILoaded.add(function() {
         // Check if the current product ID is in the allowed list
         if (!productIds.includes(page.productId)) {return;}
 
-        var basePrices = {55001151 : 116.95, 74102380 : 128.95, 506210440 : 133.95, 570262509 : 116.95, 94782479 : 71.00};
+        var basePrices = {55001151 : 119.95, 74102380 : 131.95, 506210440 : 136.95, 570262509 : 119.95, 94782479 : 71.00};
         var basePrice = basePrices[page.productId]
 
         // Find the engraving input field
