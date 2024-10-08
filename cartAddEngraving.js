@@ -14,8 +14,8 @@ Ecwid.OnAPILoaded.add(function() {
           // Find the engraving input field
           var engravingInput1 = document.querySelector("input[aria-label='Engraving - Ski Pole 1']");
           var engravingInput2 = document.querySelector("input[aria-label='Engraving - Ski Pole 2']");
-          var addMoreDiv = document.querySelector(".form-control.form-control--button.form-control--large.form-control--secondary.form-control--flexible.form-control--animated.form-control--done.details-product-purchase__add-more");
-          var addToBagDiv = document.querySelector(".form-control.form-control--button.form-control--large.form-control--primary.form-control--flexible.form-control--animated.form-control--done.details-product-purchase__add-to-bag");
+          var addMoreDiv = document.querySelector(".form-control.form-control--button.form-control--large.form-control--secondary.form-control--flexible.form-control--animated.details-product-purchase__add-more.form-control__button--icon-center.form-control--done");
+          var addToBagDiv = document.querySelector(".form-control.form-control--button.form-control--large.form-control--primary.form-control--flexible.form-control--animated.details-product-purchase__add-to-bag.form-control__button--icon-center.form-control--done");
   
           // Function to update the price
           function updatePrice() {
@@ -174,14 +174,14 @@ Ecwid.OnAPILoaded.add(function() {
   
           // Attach the click event listener to the Add to Cart button
           if (addToBagDiv) {
-              var addToCartButton = addToBagDiv.querySelector(".form-control__button.form-control__button--icon-center");
+              var addToCartButton = addToBagDiv.querySelector(".form-control__button");
               if (addToCartButton) {
                   console.log('Add to Bag button present');
                   addToCartButton.addEventListener('click', handleAddToCart);
               }
           }
           if (addMoreDiv) {
-              var addMoreButton = addMoreDiv.querySelector(".form-control__button.form-control__button--icon-center");
+              var addMoreButton = addMoreDiv.querySelector(".form-control__button");
               if (addMoreButton) {
                   console.log('Add More button present');
                   addMoreButton.addEventListener('click', handleAddToCart);
