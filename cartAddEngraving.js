@@ -15,8 +15,10 @@ Ecwid.OnAPILoaded.add(function() {
           const engravingInput1 = document.querySelector("input[aria-label='Engraving - Ski Pole 1']");
           const engravingInput2 = document.querySelector("input[aria-label='Engraving - Ski Pole 2']");
           const addMoreDiv = document.querySelector(".form-control.form-control--button.form-control--large.form-control--secondary.form-control--flexible.form-control--animated.form-control--done.details-product-purchase__add-more");
+          const addMoreDiv1 = document.querySelector(".form-control.form-control--button.form-control--large.form-control--secondary.form-control--flexible.form-control--animated.details-product-purchase__add-more.form-control__button--icon-center.form-control--done");
           const addToBagDiv = document.querySelector(".form-control.form-control--button.form-control--large.form-control--primary.form-control--flexible.form-control--animated.form-control--done.details-product-purchase__add-to-bag");
-  
+          const addToBagDiv1 = document.querySelector(".form-control.form-control--button.form-control--large.form-control--primary.form-control--flexible.form-control--animated.details-product-purchase__add-to-bag.form-control__button--icon-center.form-control--done");
+          
           // Function to update the price
           function updatePrice() {
             try {
@@ -209,11 +211,43 @@ Ecwid.OnAPILoaded.add(function() {
               });
             }
           }
-          if (addMoreDiv) {
+          else if (addToBagDiv1) {
+            const addToBagButton1 = addToBagDiv1.querySelector(".form-control__button");
+            if (addToBagButton1) {
+              console.log('Add to Bag 1 button present');
+              addToBagButton1.addEventListener('click', async (event) => {
+                try {
+                  await handleAddToCart(event);
+                  console.log('Product added to cart successfully');
+                  await handleRemoveFromCart();
+                  console.log('Product removed from cart');
+                } catch (error) {
+                  console.error('Error handling add to cart:', error);
+                }
+              });
+            }
+          }
+          else if (addMoreDiv) {
             const addMoreButton = addMoreDiv.querySelector(".form-control__button.form-control__button--icon-center");
             if (addMoreButton) {
               console.log('Add More button present');
               addMoreButton.addEventListener('click', async (event) => {
+                try {
+                  await handleAddToCart(event);
+                  console.log('Product added to cart successfully');
+                  await handleRemoveFromCart();
+                  console.log('Product removed from cart');
+                } catch (error) {
+                  console.error('Error handling add to cart:', error);
+                }
+              });
+            }
+          }
+          else if (addMoreDiv1) {
+            const addMoreButton1 = addMoreDiv1.querySelector(".form-control__button");
+            if (addMoreButton1) {
+              console.log('Add More 1 button present');
+              addMoreButton1.addEventListener('click', async (event) => {
                 try {
                   await handleAddToCart(event);
                   console.log('Product added to cart successfully');
