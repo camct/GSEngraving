@@ -24,6 +24,9 @@ Ecwid.OnAPILoaded.add(function() {
             try {
               const engravingText1 = engravingInput1 ? engravingInput1.value : '';
               const engravingText2 = engravingInput2 ? engravingInput2.value : '';
+            try {
+              const engravingText1 = engravingInput1 ? engravingInput1.value : '';
+              const engravingText2 = engravingInput2 ? engravingInput2.value : '';
   
               // STRAP
               const strapRadio = document.querySelector("input[name='Strap']:checked");
@@ -63,11 +66,16 @@ Ecwid.OnAPILoaded.add(function() {
           // Function to update product options on add to cart
           function handleAddToCart(event) {
             return new Promise((resolve, reject) => {
+            return new Promise((resolve, reject) => {
               console.log("handle add to cart active");
               event.preventDefault();  // Prevent the default add to cart behavior
               
               // Engraving
               const customEngraving = ['0', '1-6', '1-6', '1-6', '1-6', '1-6', '1-6', '7-8', '7-8', '9-10', '9-10', '11-12', '11-12', '13-14', '13-14', '15-16', '15-16', '17-18', '17-18', '19-20', '19-20', '21-22', '21-22', '23-24', '23-24', '25-26', '25-26', '27-28', '27-28', '29-30', '29-30', '31-32', '31-32', '33-34', '33-34', '35-36', '35-36', '37-38', '37-38', '39-40', '39-40'];
+              const engravingText1 = engravingInput1 ? engravingInput1.value : '';
+              const engravingText2 = engravingInput2 ? engravingInput2.value : '';
+              const charCount = engravingText1.length + engravingText2.length;
+              const engravingCost = customEngraving[charCount];
               const engravingText1 = engravingInput1 ? engravingInput1.value : '';
               const engravingText2 = engravingInput2 ? engravingInput2.value : '';
               const charCount = engravingText1.length + engravingText2.length;
@@ -115,10 +123,14 @@ Ecwid.OnAPILoaded.add(function() {
               if (lengthInputVal === '') {
                 console.log('Length input not present');
                 return reject(new Error('Length input is required'));
+              if (lengthInputVal === '') {
+                console.log('Length input not present');
+                return reject(new Error('Length input is required'));
               }
   
               // Quantity
               const quantityCheck = document.querySelector("input[name='ec-qty']");
+              let quantityValue = quantityCheck ? parseInt(quantityCheck.value, 10) : 1;
               let quantityValue = quantityCheck ? parseInt(quantityCheck.value, 10) : 1;
               if (isNaN(quantityValue)) {
                   quantityValue = 1;
@@ -127,6 +139,7 @@ Ecwid.OnAPILoaded.add(function() {
               console.log('quantity:', quantityValue, 'and type:', typeof quantityValue);
   
               // Prepare the product options to include the engraving cost
+              const options = {
               const options = {
                   'Basket Size': `${basketSize}`,
                   'Grip Color': `${gripColor}`,
@@ -146,6 +159,26 @@ Ecwid.OnAPILoaded.add(function() {
                   quantity: quantityValue,
                   options: options,
                   callback: function(success, product, cart, error) {
+                    console.log('success', success);
+                    console.log('product:', product);
+                    console.log('cart:', cart);
+                    console.log('error:', error);
+                    
+                    if (success) {
+                      resolve(product);
+                    } else {
+                      reject(error || new Error('Failed to add product to cart'));
+                    }
+                  }
+              });
+            });
+          }
+
+          function handleRemoveFromCart() {
+            return new Promise(resolve => {
+                Ecwid.Cart.removeProduct(-1);
+                console.log('Product removed from cart');
+                resolve();
                     console.log('success', success);
                     console.log('product:', product);
                     console.log('cart:', cart);
@@ -262,3 +295,4 @@ Ecwid.OnAPILoaded.add(function() {
       }
     });
   });
+
