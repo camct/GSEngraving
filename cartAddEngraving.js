@@ -60,7 +60,6 @@ Ecwid.OnAPILoaded.add(function() {
             }
           }
   
-          // Function to update product options on add to cart
           function handleAddToCart(event) {
             return new Promise((resolve, reject) => {
               console.log("handle add to cart active");
