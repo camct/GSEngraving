@@ -173,6 +173,7 @@ Ecwid.OnAPILoaded.add(function() {
             });
           }
 
+          // Takes in a button and adds an event listener to it that updates the cart with the correct item
           function updateCart(target) {
             target.addEventListener('click', async (event) => {
               try {
