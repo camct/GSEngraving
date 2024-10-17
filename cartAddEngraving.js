@@ -24,9 +24,6 @@ Ecwid.OnAPILoaded.add(function() {
             try {
               const engravingText1 = engravingInput1 ? engravingInput1.value : '';
               const engravingText2 = engravingInput2 ? engravingInput2.value : '';
-            try {
-              const engravingText1 = engravingInput1 ? engravingInput1.value : '';
-              const engravingText2 = engravingInput2 ? engravingInput2.value : '';
   
               // STRAP
               const strapRadio = document.querySelector("input[name='Strap']:checked");
@@ -66,16 +63,11 @@ Ecwid.OnAPILoaded.add(function() {
           // Function to update product options on add to cart
           function handleAddToCart(event) {
             return new Promise((resolve, reject) => {
-            return new Promise((resolve, reject) => {
               console.log("handle add to cart active");
               event.preventDefault();  // Prevent the default add to cart behavior
               
               // Engraving
               const customEngraving = ['0', '1-6', '1-6', '1-6', '1-6', '1-6', '1-6', '7-8', '7-8', '9-10', '9-10', '11-12', '11-12', '13-14', '13-14', '15-16', '15-16', '17-18', '17-18', '19-20', '19-20', '21-22', '21-22', '23-24', '23-24', '25-26', '25-26', '27-28', '27-28', '29-30', '29-30', '31-32', '31-32', '33-34', '33-34', '35-36', '35-36', '37-38', '37-38', '39-40', '39-40'];
-              const engravingText1 = engravingInput1 ? engravingInput1.value : '';
-              const engravingText2 = engravingInput2 ? engravingInput2.value : '';
-              const charCount = engravingText1.length + engravingText2.length;
-              const engravingCost = customEngraving[charCount];
               const engravingText1 = engravingInput1 ? engravingInput1.value : '';
               const engravingText2 = engravingInput2 ? engravingInput2.value : '';
               const charCount = engravingText1.length + engravingText2.length;
@@ -123,14 +115,10 @@ Ecwid.OnAPILoaded.add(function() {
               if (lengthInputVal === '') {
                 console.log('Length input not present');
                 return reject(new Error('Length input is required'));
-              if (lengthInputVal === '') {
-                console.log('Length input not present');
-                return reject(new Error('Length input is required'));
               }
   
               // Quantity
               const quantityCheck = document.querySelector("input[name='ec-qty']");
-              let quantityValue = quantityCheck ? parseInt(quantityCheck.value, 10) : 1;
               let quantityValue = quantityCheck ? parseInt(quantityCheck.value, 10) : 1;
               if (isNaN(quantityValue)) {
                   quantityValue = 1;
@@ -139,7 +127,6 @@ Ecwid.OnAPILoaded.add(function() {
               console.log('quantity:', quantityValue, 'and type:', typeof quantityValue);
   
               // Prepare the product options to include the engraving cost
-              const options = {
               const options = {
                   'Basket Size': `${basketSize}`,
                   'Grip Color': `${gripColor}`,
@@ -176,30 +163,27 @@ Ecwid.OnAPILoaded.add(function() {
 
           function handleRemoveFromCart() {
             return new Promise(resolve => {
+              try {
                 Ecwid.Cart.removeProduct(-1);
                 console.log('Product removed from cart');
-                resolve();
-                    console.log('success', success);
-                    console.log('product:', product);
-                    console.log('cart:', cart);
-                    console.log('error:', error);
-                    
-                    if (success) {
-                      resolve(product);
-                    } else {
-                      reject(error || new Error('Failed to add product to cart'));
-                    }
-                  }
-              });
+              } catch (error) {
+                console.error('Error removing product from cart:', error);
+              }
+              resolve();
             });
           }
 
-          function handleRemoveFromCart() {
-            return new Promise(resolve => {
-                Ecwid.Cart.removeProduct(-1);
+          function updateCart(target) {
+            target.addEventListener('click', async (event) => {
+              try {
+                await handleAddToCart(event);
+                console.log('Product added to cart successfully');
+                await handleRemoveFromCart();
                 console.log('Product removed from cart');
-                resolve();
-              });
+              } catch (error) {
+                console.error('Error handling cart update:', error);
+              }
+            });
           }
   
           // Attach event listeners
@@ -229,70 +213,49 @@ Ecwid.OnAPILoaded.add(function() {
   
           // Attach the click event listener to the Add to Cart button
           if (addToBagDiv) {
+            console.log('In addToBagDiv')
             const addToCartButton = addToBagDiv.querySelector(".form-control__button.form-control__button--icon-center");
             if (addToCartButton) {
               console.log('Add to Bag button present');
-              addToCartButton.addEventListener('click', async (event) => {
-                try {
-                  await handleAddToCart(event);
-                  console.log('Product added to cart successfully');
-                  await handleRemoveFromCart();
-                  console.log('Product removed from cart');
-                } catch (error) {
-                  console.error('Error handling add to cart:', error);
-                }
-              });
+              updateCart(addToCartButton);
+            }
+            else {
+              console.log('No Add to Bag button present');
             }
           }
           else if (addToBagDiv1) {
+            console.log('In addToBagDiv1')
             const addToBagButton1 = addToBagDiv1.querySelector(".form-control__button");
             if (addToBagButton1) {
               console.log('Add to Bag 1 button present');
-              addToBagButton1.addEventListener('click', async (event) => {
-                try {
-                  await handleAddToCart(event);
-                  console.log('Product added to cart successfully');
-                  await handleRemoveFromCart();
-                  console.log('Product removed from cart');
-                } catch (error) {
-                  console.error('Error handling add to cart:', error);
-                }
-              });
+              updateCart(addToBagButton1);
+            }
+            else {
+              console.log('No Add to Bag 1 button present');
             }
           }
-          else if (addMoreDiv) {
+          if (addMoreDiv) {
+            console.log('In addMoreDiv')
             const addMoreButton = addMoreDiv.querySelector(".form-control__button.form-control__button--icon-center");
             if (addMoreButton) {
               console.log('Add More button present');
-              addMoreButton.addEventListener('click', async (event) => {
-                try {
-                  await handleAddToCart(event);
-                  console.log('Product added to cart successfully');
-                  await handleRemoveFromCart();
-                  console.log('Product removed from cart');
-                } catch (error) {
-                  console.error('Error handling add to cart:', error);
-                }
-              });
+              updateCart(addMoreButton);
+            }
+            else {
+              console.log('No Add More button present');
             }
           }
           else if (addMoreDiv1) {
+            console.log('In addMoreDiv1')
             const addMoreButton1 = addMoreDiv1.querySelector(".form-control__button");
             if (addMoreButton1) {
               console.log('Add More 1 button present');
-              addMoreButton1.addEventListener('click', async (event) => {
-                try {
-                  await handleAddToCart(event);
-                  console.log('Product added to cart successfully');
-                  await handleRemoveFromCart();
-                  console.log('Product removed from cart');
-                } catch (error) {
-                  console.error('Error handling add to cart:', error);
-                }
-              });
+              updateCart(addMoreButton1);
+            }
+            else {
+              console.log('No Add More 1 button present');
             }
           }
       }
     });
   });
-
