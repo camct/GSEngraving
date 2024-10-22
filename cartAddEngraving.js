@@ -173,19 +173,30 @@ Ecwid.OnAPILoaded.add(function() {
           }
 
           // Takes in a button and adds an event listener to it that updates the cart with the correct item
-          function updateCart(target) {
-            target.addEventListener('click', async (event) => {
-              try {
-                await handleAddToCart(event);
-                console.log('Product added to cart successfully');
-                await handleRemoveFromCart();
-                console.log('Product removed from cart');
-              } catch (error) {
-                console.error('Error handling cart update:', error);
-              }
-            });
+          function listenUpdateCart(target) {
+            const [targetVariable] = Object.keys({target});
+            console.log(`In updateCart with ${targetVariable}`);
+            const addButton = target.querySelector(".form-control__button");
+            if (addButton) {
+              console.log('Button found');
+              target.addEventListener('click', async (event) => {
+                try {
+                  await handleAddToCart(event);
+                  console.log('Product added to cart successfully');
+                  // Add a small delay before removing the product
+                  await new Promise(resolve => setTimeout(resolve, 100));
+                  await handleRemoveFromCart();
+                  console.log('Product removed from cart');
+                } catch (error) {
+                  console.error('Error handling cart update:', error);
+                }
+              });
+            }
+            else {
+              console.log('No button found');
+            }
           }
-  
+
           // Attach event listeners
           if (engravingInput1) {
               engravingInput1.addEventListener('input', updatePrice);
@@ -212,50 +223,10 @@ Ecwid.OnAPILoaded.add(function() {
           updatePrice();
   
           // Attach the click event listener to the Add to Cart button
-          if (addToBagDiv) {
-            console.log('In addToBagDiv')
-            const addToCartButton = addToBagDiv.querySelector(".form-control__button.form-control__button--icon-center");
-            if (addToCartButton) {
-              console.log('Add to Bag button present');
-              updateCart(addToCartButton);
-            }
-            else {
-              console.log('No Add to Bag button present');
-            }
-          }
-          else if (addToBagDiv1) {
-            console.log('In addToBagDiv1')
-            const addToBagButton1 = addToBagDiv1.querySelector(".form-control__button");
-            if (addToBagButton1) {
-              console.log('Add to Bag 1 button present');
-              updateCart(addToBagButton1);
-            }
-            else {
-              console.log('No Add to Bag 1 button present');
-            }
-          }
-          if (addMoreDiv) {
-            console.log('In addMoreDiv')
-            const addMoreButton = addMoreDiv.querySelector(".form-control__button.form-control__button--icon-center");
-            if (addMoreButton) {
-              console.log('Add More button present');
-              updateCart(addMoreButton);
-            }
-            else {
-              console.log('No Add More button present');
-            }
-          }
-          else if (addMoreDiv1) {
-            console.log('In addMoreDiv1')
-            const addMoreButton1 = addMoreDiv1.querySelector(".form-control__button");
-            if (addMoreButton1) {
-              console.log('Add More 1 button present');
-              updateCart(addMoreButton1);
-            }
-            else {
-              console.log('No Add More 1 button present');
-            }
-          }
-      }
+          if (addToBagDiv) { listenUpdateCart(addToBagDiv); }
+          else if (addToBagDiv1) { listenUpdateCart(addToBagDiv1); }
+          if (addMoreDiv) { listenUpdateCart(addMoreDiv); }
+          else if (addMoreDiv1) { listenUpdateCart(addMoreDiv1); }
+        }
     });
   });
