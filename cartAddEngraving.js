@@ -19,6 +19,7 @@ Ecwid.OnAPILoaded.add(function() {
           const addToBagDiv = document.querySelector(".form-control.form-control--button.form-control--large.form-control--primary.form-control--flexible.form-control--animated.form-control--done.details-product-purchase__add-to-bag");
           const addToBagDiv1 = document.querySelector(".form-control.form-control--button.form-control--large.form-control--primary.form-control--flexible.form-control--animated.details-product-purchase__add-to-bag.form-control__button--icon-center.form-control--done");
           
+          // ------------------------- FUNCTIONS ------------------------- 
           // Function to update the price
           function updatePrice() {
             try {
@@ -197,7 +198,8 @@ Ecwid.OnAPILoaded.add(function() {
             }
           }
 
-          // Attach event listeners
+
+          // ------------------------- EVENT LISTENERS ------------------------- 
           if (engravingInput1) {
               engravingInput1.addEventListener('input', updatePrice);
           }
