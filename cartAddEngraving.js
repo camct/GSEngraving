@@ -4,6 +4,7 @@ Ecwid.OnAPILoaded.add(function() {
       if (page.type === 'PRODUCT') {
           console.log(page.productId);
           const productIds = [55001151, 74102380, 506210440, 570262509, 94782479];
+          let cartUpdateProduct = null;
   
           // Check if the current product ID is in the allowed list
           if (!productIds.includes(page.productId)) {return;}
@@ -139,38 +140,86 @@ Ecwid.OnAPILoaded.add(function() {
               };
               console.log('options', options);
               console.log('quantity:', quantityValue);
+
+              cartUpdateProduct = {
+                id: page.productId,
+                quantity: quantityValue,
+                options: options,
+                callback: function(success, product, cart, error) {
+                  console.log('success', success);
+                  console.log('product:', product);
+                  console.log('cart:', cart);
+                  console.log('error:', error);
+                  
+                  if (success) {
+                    resolve(product);
+                    console.log('product added to cart');
+                  } else {
+                    reject(error || new Error('Failed to add product to cart'));
+                  }
+                }
+              };
               
               // Add the product to the cart with the engraving option
-              Ecwid.Cart.addProduct({
-                  id: page.productId,
-                  quantity: quantityValue,
-                  options: options,
-                  callback: function(success, product, cart, error) {
-                    console.log('success', success);
-                    console.log('product:', product);
-                    console.log('cart:', cart);
-                    console.log('error:', error);
-                    
-                    if (success) {
-                      resolve(product);
-                    } else {
-                      reject(error || new Error('Failed to add product to cart'));
-                    }
-                  }
-              });
+              Ecwid.Cart.addProduct(cartUpdateProduct);
             });
           }
 
-          function handleRemoveFromCart() {
+          function handleRemoveFromCart(item) {
             return new Promise(resolve => {
               try {
-                Ecwid.Cart.removeProduct(-1);
-                console.log('Product removed from cart');
+                // Set the engraving to 0 because that is the option for the incorrect product
+                item.options['Engraving'] = '0';
+                const cart = Ecwid.Cart.get();
+                let productFound = false;
+
+                for (let i = 0; i < cart.items.length; i++) {
+                  if (isEqual(cart.items[i].options, item.options) && cart.items[i].product.id === item.id) {
+                    productFound = true;
+                    if (cart.items[i].quantity > item.quantity) {
+                      cart.items[i].quantity -= item.quantity;
+                      Ecwid.Cart.removeProduct(i);
+                      Ecwid.Cart.addProduct(cart.items[i]);
+                      console.log(`Cart item ${i} quantity decremented to ${cart.items[i].quantity}`);
+                    } else {
+                      Ecwid.Cart.removeProduct(i);
+                      console.log(`Cart item ${i} removed`);
+                    }
+                    console.log(`Cart item matches:`, {...cart.items[i]}, `item:`, {...item});
+                    break;
+                  }
+                }
+
+                if (!productFound) {
+                  console.log('No matching product found in cart');
+                }
               } catch (error) {
                 console.error('Error removing product from cart:', error);
+              } finally {
+                resolve();
               }
-              resolve();
             });
+          }
+
+          function isEqual(obj1, obj2) {
+              // Check if the number of keys is different
+            if (Object.keys(obj1).length !== Object.keys(obj2).length) {
+              return false;
+            }
+
+            for (const key in obj1) {
+              // Check if the key exists in obj2
+              if (!(key in obj2)) {
+                return false;
+              }
+
+              // Check if the values are equal
+              if (obj1[key] !== obj2[key]) {
+                return false;
+              }
+            }
+
+            return true;
           }
 
           // Takes in a button and adds an event listener to it that updates the cart with the correct item
@@ -183,11 +232,9 @@ Ecwid.OnAPILoaded.add(function() {
               target.addEventListener('click', async (event) => {
                 try {
                   await handleAddToCart(event);
-                  console.log('Product added to cart successfully');
                   // Add a small delay before removing the product
                   await new Promise(resolve => setTimeout(resolve, 100));
-                  await handleRemoveFromCart();
-                  console.log('Product removed from cart');
+                  await handleRemoveFromCart(cartUpdateProduct);
                 } catch (error) {
                   console.error('Error handling cart update:', error);
                 }
@@ -232,3 +279,5 @@ Ecwid.OnAPILoaded.add(function() {
         }
     });
   });
+
+
