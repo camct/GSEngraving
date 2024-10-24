@@ -166,48 +166,56 @@ Ecwid.OnAPILoaded.add(function() {
           }
 
           function handleRemoveFromCart(item) {
-            return new Promise(resolve => {
-              try {
-                // Set the engraving to 0 because that is the option for the incorrect product
-                console.log('item to remove:', item);
-                item.options['Engraving'] = '0';
-                console.log('item with engraving set to 0:', item);
-                const cart = Ecwid.Cart.get();
-                console.log('current cart:', cart);
+            return new Promise((resolve) => {
+              console.log('item to remove:', item);
+              item.options['Engraving'] = '0';
+              console.log('item with engraving set to 0:', item);
 
-                if (!cart || !cart.items) {
-                  console.error('Cart is not available or empty');
-                  resolve(); // Resolve the promise even if the cart is not available
-                  return;
-                }
+              Ecwid.Cart.get(function(cart) {
+                try {
+                  console.log('current cart:', cart);
 
-                let productFound = false;
-
-                for (let i = 0; i < cart.items.length; i++) {
-                  if (isEqual(cart.items[i].options, item.options) && cart.items[i].product.id === item.id) {
-                    productFound = true;
-                    if (cart.items[i].quantity > item.quantity) {
-                      cart.items[i].quantity -= item.quantity;
-                      Ecwid.Cart.removeProduct(i);
-                      Ecwid.Cart.addProduct(cart.items[i]);
-                      console.log(`Cart item ${i} quantity decremented to ${cart.items[i].quantity}`);
-                    } else {
-                      Ecwid.Cart.removeProduct(i);
-                      console.log(`Cart item ${i} removed`);
-                    }
-                    console.log(`Cart item matches:`, {...cart.items[i]}, `item:`, {...item});
-                    break;
+                  if (!cart || !cart.items) {
+                    console.error('Cart is not available or empty');
+                    resolve();
+                    return;
                   }
-                }
 
-                if (!productFound) {
-                  console.log('No matching product found in cart');
+                  let productFound = false;
+
+                  for (let i = 0; i < cart.items.length; i++) {
+                    if (isEqual(cart.items[i].options, item.options) && cart.items[i].product.id === item.id) {
+                      productFound = true;
+                      if (cart.items[i].quantity > item.quantity) {
+                        cart.items[i].quantity -= item.quantity;
+                        Ecwid.Cart.removeProduct(i);
+                        Ecwid.Cart.addProduct(cart.items[i], function(success) {
+                          if (success) {
+                            console.log(`Cart item ${i} quantity decremented to ${cart.items[i].quantity}`);
+                          } else {
+                            console.error('Failed to update cart item quantity');
+                          }
+                          resolve();
+                        });
+                      } else {
+                        Ecwid.Cart.removeProduct(i);
+                        console.log(`Cart item ${i} removed`);
+                        resolve();
+                      }
+                      console.log(`Cart item matches:`, {...cart.items[i]}, `item:`, {...item});
+                      return; // Exit the function after initiating cart update
+                    }
+                  }
+
+                  if (!productFound) {
+                    console.log('No matching product found in cart');
+                    resolve();
+                  }
+                } catch (error) {
+                  console.error('Error removing product from cart:', error);
+                  resolve();
                 }
-              } catch (error) {
-                console.error('Error removing product from cart:', error);
-              } finally {
-                resolve();
-              }
+              });
             });
           }
 
@@ -289,6 +297,9 @@ Ecwid.OnAPILoaded.add(function() {
         }
     });
   });
+
+
+
 
 
 
