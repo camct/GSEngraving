@@ -1,6 +1,5 @@
 Ecwid.OnAPILoaded.add(function() {
     Ecwid.OnPageLoaded.add(function(page) {
-      console.log('Page type is', page.type, "!!!");
       if (page.type === 'PRODUCT') {
           console.log(page.productId);
           const productIds = [55001151, 74102380, 506210440, 570262509, 94782479];
@@ -73,7 +72,6 @@ Ecwid.OnAPILoaded.add(function() {
               const engravingText2 = engravingInput2 ? engravingInput2.value : '';
               const charCount = engravingText1.length + engravingText2.length;
               const engravingCost = customEngraving[charCount];
-              console.log('engraving cost:', engravingCost);
   
               // BASKET SIZE
               const basketSizeElement = document.querySelector('.product-details-module.details-product-option.details-product-option--select.details-product-option--Basket-Size');
@@ -82,7 +80,6 @@ Ecwid.OnAPILoaded.add(function() {
               const basketSizeValue = basketSizeSelect ? basketSizeSelect.value : '';
               const basketSizeMenu = { 'Tiny Disc- 2" (black only)': 0, 'Medium Basket- 4"': 1, 'Huge Powder Basket- 4.75" (black only)': 2 };
               const basketSize = basketSizeMenu[basketSizeValue] || 1;
-              console.log("basket size:", basketSize);
   
               // GRIP COLOR
               const gripColorElement = document.querySelector('.product-details-module.details-product-option.details-product-option--select.details-product-option--Grip-Color');
@@ -91,7 +88,6 @@ Ecwid.OnAPILoaded.add(function() {
               const gripColorValue = gripColorSelect ? gripColorSelect.value : '';
               const gripColorMenu = { 'Black': 0, 'Cork': 1, 'Blue': 2, 'Green': 3, 'Pink': 4, 'Purple': 5, 'Orange': 6, 'Red': 7, 'Turquoise': 8 };
               const gripColor = gripColorMenu[gripColorValue] || 2;
-              console.log("grip color:", gripColor);
   
               // BASKET COLOR
               const basketColorElement = document.querySelector('.product-details-module.details-product-option.details-product-option--select.details-product-option--Basket-Color');
@@ -100,19 +96,16 @@ Ecwid.OnAPILoaded.add(function() {
               const basketColorValue = basketColorSelect ? basketColorSelect.value : '';
               const basketColorMenu = { 'Black': 0, 'White': 1, 'Transparent': 2, 'Blue': 3, 'Green': 4, 'Pink': 5, 'Purple': 6, 'Orange': 7, 'Red': 8, 'Turquiose': 9 };
               const basketColor = basketColorMenu[basketColorValue] || 0;
-              console.log("basket color:", basketColor);
   
               // STRAP
               const strapRadio = document.querySelector("input[name='Strap']:checked");
               const strapValue = strapRadio ? strapRadio.value : '';
               const strapMenu = { 'Salida Magic': 0, 'Autumn': 1, 'Bridgers': 2, 'Mount Tam': 3, 'Flow': 4, 'Idaho 9': 5, 'Dark Side': 6, 'Lone Peak': 7, 'Teton': 8, 'The Grand': 9, 'Spanish Peaks': 10, 'Adjustable': 11, 'Fixed': 12, 'None': 13 };
               const strap = strapMenu[strapValue] || 12;
-              console.log("strap:", strap);
   
               // Length
               const lengthInput = document.querySelector("input[aria-label='Length (cm or inches)']");
               const lengthInputVal = lengthInput ? lengthInput.value : '';
-              console.log('length:', lengthInputVal);
               if (lengthInputVal === '') {
                 console.log('Length input not present');
                 return reject(new Error('Length input is required'));
@@ -123,9 +116,7 @@ Ecwid.OnAPILoaded.add(function() {
               let quantityValue = quantityCheck ? parseInt(quantityCheck.value, 10) : 1;
               if (isNaN(quantityValue)) {
                   quantityValue = 1;
-                  console.log('quantity default is not a number');
               }
-              console.log('quantity:', quantityValue, 'and type:', typeof quantityValue);
   
               // Prepare the product options to include the engraving cost
               const options = {
@@ -181,12 +172,9 @@ Ecwid.OnAPILoaded.add(function() {
                     return;
                   }
 
-                  let productFound = false;
-
                   for (let i = 0; i < cart.items.length; i++) {
                     if (isEqual(cart.items[i].options, item.options) && cart.items[i].product.id === item.id) {
                       console.log(`Cart item matches:`, {...cart.items[i]}, `item:`, {...item});
-                      productFound = true;
                       if (cart.items[i].quantity > item.quantity) {
                         cart.items[i].quantity -= item.quantity;
                         Ecwid.Cart.removeProduct(i);
@@ -308,3 +296,4 @@ Ecwid.OnAPILoaded.add(function() {
 
 
 
+ 
