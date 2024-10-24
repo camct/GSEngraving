@@ -169,8 +169,18 @@ Ecwid.OnAPILoaded.add(function() {
             return new Promise(resolve => {
               try {
                 // Set the engraving to 0 because that is the option for the incorrect product
+                console.log('item to remove:', item);
                 item.options['Engraving'] = '0';
+                console.log('item with engraving set to 0:', item);
                 const cart = Ecwid.Cart.get();
+                console.log('current cart:', cart);
+
+                if (!cart || !cart.items) {
+                  console.error('Cart is not available or empty');
+                  resolve(); // Resolve the promise even if the cart is not available
+                  return;
+                }
+
                 let productFound = false;
 
                 for (let i = 0; i < cart.items.length; i++) {
@@ -279,5 +289,7 @@ Ecwid.OnAPILoaded.add(function() {
         }
     });
   });
+
+
 
 
