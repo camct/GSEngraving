@@ -185,32 +185,34 @@ Ecwid.OnAPILoaded.add(function() {
 
                   for (let i = 0; i < cart.items.length; i++) {
                     if (isEqual(cart.items[i].options, item.options) && cart.items[i].product.id === item.id) {
+                      console.log(`Cart item matches:`, {...cart.items[i]}, `item:`, {...item});
                       productFound = true;
                       if (cart.items[i].quantity > item.quantity) {
                         cart.items[i].quantity -= item.quantity;
                         Ecwid.Cart.removeProduct(i);
-                        Ecwid.Cart.addProduct(cart.items[i], function(success) {
-                          if (success) {
-                            console.log(`Cart item ${i} quantity decremented to ${cart.items[i].quantity}`);
-                          } else {
-                            console.error('Failed to update cart item quantity');
-                          }
-                          resolve();
-                        });
+                        
+                        // Add a small delay before adding the product back
+                        setTimeout(() => {
+                          Ecwid.Cart.addProduct(cart.items[i], function(success) {
+                            if (success) {
+                              console.log(`Cart item ${i} quantity decremented to ${cart.items[i].quantity}`);
+                            } else {
+                              console.error('Failed to update cart item quantity');
+                            }
+                            resolve();
+                          });
+                        }, 100); // 100ms delay
                       } else {
                         Ecwid.Cart.removeProduct(i);
                         console.log(`Cart item ${i} removed`);
                         resolve();
                       }
-                      console.log(`Cart item matches:`, {...cart.items[i]}, `item:`, {...item});
                       return; // Exit the function after initiating cart update
                     }
                   }
 
-                  if (!productFound) {
-                    console.log('No matching product found in cart');
-                    resolve();
-                  }
+                  console.log('No matching product found in cart');
+                  resolve();
                 } catch (error) {
                   console.error('Error removing product from cart:', error);
                   resolve();
@@ -297,6 +299,8 @@ Ecwid.OnAPILoaded.add(function() {
         }
     });
   });
+
+
 
 
 
