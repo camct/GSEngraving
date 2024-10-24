@@ -156,12 +156,87 @@ Ecwid.OnAPILoaded.add(function() {
             });
           }
 
-          function handleRemoveFromCart(item) {
-            return new Promise((resolve) => {
-              console.log('item to remove:', item);
-              item.options['Engraving'] = '0';
-              console.log('item with engraving set to 0:', item);
+          function convertOptionValues(product) {
+            const flippedBasketSizeMenu = {
+              '0': 'Tiny Disc- 2" (black only)',
+              '1': 'Medium Basket- 4"',
+              '2': 'Huge Powder Basket- 4.75" (black only)'
+            };
 
+            const flippedGripColorMenu = {
+              '0': 'Black',
+              '1': 'Cork',
+              '2': 'Blue',
+              '3': 'Green',
+              '4': 'Pink',
+              '5': 'Purple',
+              '6': 'Orange',
+              '7': 'Red',
+              '8': 'Turquoise'
+            };
+
+            const flippedBasketColorMenu = {
+              '0': 'Black',
+              '1': 'White',
+              '2': 'Transparent',
+              '3': 'Blue',
+              '4': 'Green',
+              '5': 'Pink',
+              '6': 'Purple',
+              '7': 'Orange',
+              '8': 'Red',
+              '9': 'Turquiose'
+            };
+
+            const flippedStrapMenu = {
+              '0': 'Salida Magic',
+              '1': 'Autumn',
+              '2': 'Bridgers',
+              '3': 'Mount Tam',
+              '4': 'Flow',
+              '5': 'Idaho 9',
+              '6': 'Dark Side',
+              '7': 'Lone Peak',
+              '8': 'Teton',
+              '9': 'The Grand',
+              '10': 'Spanish Peaks',
+              '11': 'Adjustable',
+              '12': 'Fixed',
+              '13': 'None'
+            };
+
+            // Example usage
+            const basketSizeName = flippedBasketSizeMenu[product.options['Basket Size']];
+            const gripColorName = flippedGripColorMenu[product.options['Grip Color']];
+            const basketColorName = flippedBasketColorMenu[product.options['Basket Color']];
+            const strapName = flippedStrapMenu[product.options['Strap']];
+            product.options['Engraving'] = '0';
+
+
+            console.log('Converted option values:', {
+              basketSizeName,
+              gripColorName,
+              basketColorName,
+              strapName
+            });
+
+            // Return the converted product if needed
+            return {
+              ...product,
+              options: {
+                ...product.options,
+                'Basket Size': basketSizeName,
+                'Grip Color': gripColorName,
+                'Basket Color': basketColorName,
+                'Strap': strapName
+              }
+            };
+          }
+
+          function handleRemoveFromCart(product) {
+            return new Promise((resolve) => {
+              const item=convertOptionValues(product);
+              console.log('item to remove:', item);
               Ecwid.Cart.get(function(cart) {
                 try {
                   console.log('current cart:', cart);
