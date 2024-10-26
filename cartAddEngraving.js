@@ -14,10 +14,8 @@ Ecwid.OnAPILoaded.add(function() {
           // Find the engraving input field
           const engravingInput1 = document.querySelector("input[aria-label='Engraving - Ski Pole 1']");
           const engravingInput2 = document.querySelector("input[aria-label='Engraving - Ski Pole 2']");
-          const addMoreDiv = document.querySelector(".form-control.form-control--button.form-control--large.form-control--secondary.form-control--flexible.form-control--animated.form-control--done.details-product-purchase__add-more");
-          const addMoreDiv1 = document.querySelector(".form-control.form-control--button.form-control--large.form-control--secondary.form-control--flexible.form-control--animated.details-product-purchase__add-more.form-control__button--icon-center.form-control--done");
-          const addToBagDiv = document.querySelector(".form-control.form-control--button.form-control--large.form-control--primary.form-control--flexible.form-control--animated.form-control--done.details-product-purchase__add-to-bag");
-          const addToBagDiv1 = document.querySelector(".form-control.form-control--button.form-control--large.form-control--primary.form-control--flexible.form-control--animated.details-product-purchase__add-to-bag.form-control__button--icon-center.form-control--done");
+          const addMoreDiv = document.querySelector(".details-product-purchase__add-more");
+          const addToBagDiv = document.querySelector(".details-product-purchase__add-to-bag");
           
           // ------------------------- FUNCTIONS ------------------------- 
           // Function to update the price
@@ -74,34 +72,28 @@ Ecwid.OnAPILoaded.add(function() {
               const engravingCost = customEngraving[charCount];
   
               // BASKET SIZE
-              const basketSizeElement = document.querySelector('.product-details-module.details-product-option.details-product-option--select.details-product-option--Basket-Size');
-              const basketSizeWindow = basketSizeElement ? basketSizeElement.querySelector('.form-control--select.form-control.form-control--flexible') : null;
-              const basketSizeSelect = basketSizeWindow ? basketSizeWindow.querySelector('.form-control__select') : null;
+              const basketSizeSelect = document.querySelector('.details-product-option--Basket-Size select');
               const basketSizeValue = basketSizeSelect ? basketSizeSelect.value : '';
-              const basketSizeMenu = { 'Tiny Disc- 2" (black only)': 0, 'Medium Basket- 4"': 1, 'Huge Powder Basket- 4.75" (black only)': 2 };
-              const basketSize = basketSizeMenu[basketSizeValue] || 1;
+              // const basketSizeMenu = { 'Tiny Disc- 2" (black only)': 0, 'Medium Basket- 4"': 1, 'Huge Powder Basket- 4.75" (black only)': 2 };
+              // const basketSize = basketSizeMenu[basketSizeValue] !== undefined ? basketSizeMenu[basketSizeValue] : 1;
   
               // GRIP COLOR
-              const gripColorElement = document.querySelector('.product-details-module.details-product-option.details-product-option--select.details-product-option--Grip-Color');
-              const gripColorWindow = gripColorElement ? gripColorElement.querySelector('.form-control--select.form-control.form-control--flexible') : null;
-              const gripColorSelect = gripColorWindow ? gripColorWindow.querySelector('.form-control__select') : null;
+              const gripColorSelect = document.querySelector('.details-product-option--Grip-Color select');
               const gripColorValue = gripColorSelect ? gripColorSelect.value : '';
-              const gripColorMenu = { 'Black': 0, 'Cork': 1, 'Blue': 2, 'Green': 3, 'Pink': 4, 'Purple': 5, 'Orange': 6, 'Red': 7, 'Turquoise': 8 };
-              const gripColor = gripColorMenu[gripColorValue] || 2;
+              // const gripColorMenu = { 'Black': 0, 'Cork': 1, 'Blue': 2, 'Green': 3, 'Pink': 4, 'Purple': 5, 'Orange': 6, 'Red': 7, 'Turquoise': 8 };
+              // const gripColor = gripColorMenu[gripColorValue] !== undefined ? gripColorMenu[gripColorValue] : 2;
   
               // BASKET COLOR
-              const basketColorElement = document.querySelector('.product-details-module.details-product-option.details-product-option--select.details-product-option--Basket-Color');
-              const basketColorWindow = basketColorElement ? basketColorElement.querySelector('.form-control--select.form-control.form-control--flexible') : null;
-              const basketColorSelect = basketColorWindow ? basketColorWindow.querySelector('.form-control__select') : null;
+              const basketColorSelect = document.querySelector('.details-product-option--Basket-Color select');
               const basketColorValue = basketColorSelect ? basketColorSelect.value : '';
-              const basketColorMenu = { 'Black': 0, 'White': 1, 'Transparent': 2, 'Blue': 3, 'Green': 4, 'Pink': 5, 'Purple': 6, 'Orange': 7, 'Red': 8, 'Turquiose': 9 };
-              const basketColor = basketColorMenu[basketColorValue] || 0;
+              // const basketColorMenu = { 'Black': 0, 'White': 1, 'Transparent': 2, 'Blue': 3, 'Green': 4, 'Pink': 5, 'Purple': 6, 'Orange': 7, 'Red': 8, 'Turquiose': 9 };
+              // const basketColor = basketColorMenu[basketColorValue] !== undefined ? basketColorMenu[basketColorValue] : 0;
   
               // STRAP
               const strapRadio = document.querySelector("input[name='Strap']:checked");
               const strapValue = strapRadio ? strapRadio.value : '';
-              const strapMenu = { 'Salida Magic': 0, 'Autumn': 1, 'Bridgers': 2, 'Mount Tam': 3, 'Flow': 4, 'Idaho 9': 5, 'Dark Side': 6, 'Lone Peak': 7, 'Teton': 8, 'The Grand': 9, 'Spanish Peaks': 10, 'Adjustable': 11, 'Fixed': 12, 'None': 13 };
-              const strap = strapMenu[strapValue] || 12;
+              // const strapMenu = { 'Salida Magic': 0, 'Autumn': 1, 'Bridgers': 2, 'Mount Tam': 3, 'Flow': 4, 'Idaho 9': 5, 'Dark Side': 6, 'Lone Peak': 7, 'Teton': 8, 'The Grand': 9, 'Spanish Peaks': 10, 'Adjustable': 11, 'Fixed': 12, 'None': 13 };
+              // const strap = strapMenu[strapValue] !== undefined ? strapMenu[strapValue] : 12;
   
               // Length
               const lengthInput = document.querySelector("input[aria-label='Length (cm or inches)']");
@@ -120,14 +112,14 @@ Ecwid.OnAPILoaded.add(function() {
   
               // Prepare the product options to include the engraving cost
               const options = {
-                  'Basket Size': `${basketSize}`,
-                  'Grip Color': `${gripColor}`,
-                  'Basket Color': `${basketColor}`,
-                  'Strap': `${strap}`,
-                  'Engraving': `${engravingCost}`,
-                  'Length (cm or inches)': `${lengthInputVal}`,
-                  'Engraving - Ski Pole 1': `${engravingText1}`,
-                  'Engraving - Ski Pole 2': `${engravingText2}`
+                  'Basket Size': basketSizeValue,
+                  'Grip Color': gripColorValue,
+                  'Basket Color': basketColorValue,
+                  'Strap': strapValue,
+                  'Engraving': engravingCost,
+                  'Length (cm or inches)': lengthInputVal,
+                  'Engraving - Ski Pole 1': engravingText1,
+                  'Engraving - Ski Pole 2': engravingText2
               };
               console.log('options', options);
               console.log('quantity:', quantityValue);
@@ -235,7 +227,9 @@ Ecwid.OnAPILoaded.add(function() {
 
           function handleRemoveFromCart(product) {
             return new Promise((resolve) => {
-              const item=convertOptionValues(product);
+              // const item=convertOptionValues(product);
+              product.options['Engraving'] = '0';
+              const item = product;
               console.log('item to remove:', item);
               Ecwid.Cart.get(function(cart) {
                 try {
@@ -344,7 +338,7 @@ Ecwid.OnAPILoaded.add(function() {
           });
   
           // Add listener for grip color selection
-          const gripColorElement = document.querySelector('.product-details-module.details-product-option.details-product-option--select.details-product-option--Grip-Color');
+          const gripColorElement = document.querySelector('.details-product-option--Grip-Color');
           const gripColorWindow = gripColorElement ? gripColorElement.querySelector('.form-control--select.form-control.form-control--flexible') : null;
           const gripColorSelect = gripColorWindow ? gripColorWindow.querySelector('.form-control__select') : null;
           if (gripColorSelect) {
@@ -356,9 +350,7 @@ Ecwid.OnAPILoaded.add(function() {
   
           // Attach the click event listener to the Add to Cart button
           if (addToBagDiv) { listenUpdateCart(addToBagDiv); }
-          else if (addToBagDiv1) { listenUpdateCart(addToBagDiv1); }
-          if (addMoreDiv) { listenUpdateCart(addMoreDiv); }
-          else if (addMoreDiv1) { listenUpdateCart(addMoreDiv1); }
+          else if (addMoreDiv) { listenUpdateCart(addMoreDiv); }
         }
     });
   });
@@ -372,3 +364,4 @@ Ecwid.OnAPILoaded.add(function() {
 
 
  
+
