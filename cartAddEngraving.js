@@ -315,6 +315,7 @@ Ecwid.OnAPILoaded.add(function() {
 
           // ------------------------- Initialization ------------------------- 
           try {
+            updatePrice();
             attachCartListeners();
             attachProductListeners();
             const debouncedAttachCartListeners = debounce(attachCartListeners, 100);
