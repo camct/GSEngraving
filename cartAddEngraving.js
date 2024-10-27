@@ -6,6 +6,8 @@ Ecwid.OnAPILoaded.add(function() {
   
           // Check if the current product ID is in the allowed list
           if (!productIds.includes(page.productId)) {return;}
+
+          // ------------------------- CONSTANTS ------------------------- 
   
           const basePrices = {55001151: 119.95, 74102380: 131.95, 506210440: 136.95, 570262509: 119.95, 94782479: 71.00};
           const basePrice = basePrices[page.productId];
@@ -15,7 +17,6 @@ Ecwid.OnAPILoaded.add(function() {
           const engravingInput2 = document.querySelector("input[aria-label='Engraving - Ski Pole 2']");
           const customEngraving = ['0', '1-6', '1-6', '1-6', '1-6', '1-6', '1-6', '7-8', '7-8', '9-10', '9-10', '11-12', '11-12', '13-14', '13-14', '15-16', '15-16', '17-18', '17-18', '19-20', '19-20', '21-22', '21-22', '23-24', '23-24', '25-26', '25-26', '27-28', '27-28', '29-30', '29-30', '31-32', '31-32', '33-34', '33-34', '35-36', '35-36', '37-38', '37-38', '39-40', '39-40'];
           const engraveInd=[0,18,18,18,18,18,18,19.75,19.75,21.5,21.5,23.25,23.25,25,25,26.75,26.75,28.5,28.5,30.25,30.25,32,32,33.75,33.75,35.5,35.5,37.25,37.25,39,39,40.75,40.75,42.5,42.5,44.25,44.25,46,46,47.75,47.75];
-
           
           // ------------------------- FUNCTIONS ------------------------- 
           // Function to update the price --- CHANGES.... get the price values from ecwid so that we don't have to manually update them in the code
@@ -93,7 +94,7 @@ Ecwid.OnAPILoaded.add(function() {
             }
           }
   
-          // Modified handleAddToCart to use getProduct
+          // Add to cart
           function handleAddToCart(event) {
             return new Promise((resolve, reject) => {
               console.log("handle add to cart active");
@@ -130,10 +131,9 @@ Ecwid.OnAPILoaded.add(function() {
             });
           }
 
-
+          // Remove from cart
           function handleRemoveFromCart(product) {
             return new Promise((resolve) => {
-              // const item=convertOptionValues(product);
               product.options['Engraving'] = '0';
               const item = product;
               console.log('item to remove:', item);
@@ -184,6 +184,7 @@ Ecwid.OnAPILoaded.add(function() {
             });
           }
 
+          // Check if two objects are equal
           function isEqual(obj1, obj2) {
               // Check if the number of keys is different
             if (Object.keys(obj1).length !== Object.keys(obj2).length) {
@@ -205,7 +206,7 @@ Ecwid.OnAPILoaded.add(function() {
             return true;
           }
 
-          // Modified listenUpdateCart to use the new functions
+          // Listen for add to cart button
           function listenUpdateCart(target) {
             const [targetVariable] = Object.keys({target});
             console.log(`In updateCart with ${targetVariable}`);
@@ -233,45 +234,6 @@ Ecwid.OnAPILoaded.add(function() {
             }
           }
 
-
-          // ------------------------- EVENT LISTENERS ------------------------- 
-          if (engravingInput1) {
-              engravingInput1.addEventListener('input', updatePrice);
-          }
-          if (engravingInput2) {
-              engravingInput2.addEventListener('input', updatePrice);
-          }
-  
-          // Add listener for strap selection
-          const strapRadios = document.querySelectorAll("input[name='Strap']");
-          strapRadios.forEach(radio => {
-              radio.addEventListener('change', updatePrice);
-          });
-  
-          // Add listener for grip color selection
-          const gripColorElement = document.querySelector('.details-product-option--Grip-Color');
-          const gripColorWindow = gripColorElement ? gripColorElement.querySelector('.form-control--select.form-control.form-control--flexible') : null;
-          const gripColorSelect = gripColorWindow ? gripColorWindow.querySelector('.form-control__select') : null;
-          if (gripColorSelect) {
-              gripColorSelect.addEventListener('change', updatePrice);
-          }
-          
-          // Initial call to set the price when the page loads
-          updatePrice();
-  
-          // Function to attach listeners to cart buttons
-          function attachCartListeners() {
-            console.log('Attaching cart listeners');
-            const addToBagDiv = document.querySelector(".details-product-purchase__add-to-bag");
-            const addMoreDiv = document.querySelector(".details-product-purchase__add-more");
-            
-            if (addToBagDiv) { listenUpdateCart(addToBagDiv); }
-            else if (addMoreDiv) { listenUpdateCart(addMoreDiv); }
-          }
-
-          // Initial attachment of listeners
-          attachCartListeners();
-
           // Debounce function
           function debounce(func, wait) {
             let timeout;
@@ -285,11 +247,9 @@ Ecwid.OnAPILoaded.add(function() {
             };
           }
 
-          // Debounced version of attachCartListeners
-          const debouncedAttachCartListeners = debounce(attachCartListeners, 100);
-
           // Create a MutationObserver to watch for DOM changes
-          const observer = new MutationObserver((mutations) => {
+          function setupMutationObserver(debouncedAttachCartListeners) {
+            const observer = new MutationObserver((mutations) => {
             try {
               mutations.forEach((mutation) => {
                 if (mutation.type === 'childList') {
@@ -315,6 +275,53 @@ Ecwid.OnAPILoaded.add(function() {
 
           // Start observing the document with the configured parameters
           observer.observe(document.body, { childList: true, subtree: true });
+          }
+
+          // Function to attach all product-related event listeners
+          function attachProductListeners() {
+            // Engraving input listeners
+            if (engravingInput1) {
+              engravingInput1.addEventListener('input', updatePrice);
+            }
+            if (engravingInput2) {
+              engravingInput2.addEventListener('input', updatePrice);
+            }
+
+            // Strap selection listeners
+            const strapRadios = document.querySelectorAll("input[name='Strap']");
+            strapRadios.forEach(radio => {
+              radio.addEventListener('change', updatePrice);
+            });
+
+            // Grip color selection listener
+            const gripColorElement = document.querySelector('.details-product-option--Grip-Color');
+            const gripColorWindow = gripColorElement ? gripColorElement.querySelector('.form-control--select.form-control.form-control--flexible') : null;
+            const gripColorSelect = gripColorWindow ? gripColorWindow.querySelector('.form-control__select') : null;
+            if (gripColorSelect) {
+              gripColorSelect.addEventListener('change', updatePrice);
+            }
+          }
+          
+          // Function to attach listeners to cart buttons
+          function attachCartListeners() {
+            console.log('Attaching cart listeners');
+            const addToBagDiv = document.querySelector(".details-product-purchase__add-to-bag");
+            const addMoreDiv = document.querySelector(".details-product-purchase__add-more");
+            
+            if (addToBagDiv) { listenUpdateCart(addToBagDiv); }
+            else if (addMoreDiv) { listenUpdateCart(addMoreDiv); }
+          }
+
+
+          // ------------------------- Initialization ------------------------- 
+          try {
+            attachCartListeners();
+            attachProductListeners();
+            const debouncedAttachCartListeners = debounce(attachCartListeners, 100);
+            setupMutationObserver(debouncedAttachCartListeners);
+          } catch (error) {
+            console.error('Error during initialization:', error);
+          }
         }
     });
   });
