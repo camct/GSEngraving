@@ -14,8 +14,6 @@ Ecwid.OnAPILoaded.add(function() {
           // Find the engraving input field
           const engravingInput1 = document.querySelector("input[aria-label='Engraving - Ski Pole 1']");
           const engravingInput2 = document.querySelector("input[aria-label='Engraving - Ski Pole 2']");
-          const addMoreDiv = document.querySelector(".details-product-purchase__add-more");
-          const addToBagDiv = document.querySelector(".details-product-purchase__add-to-bag");
           
           // ------------------------- FUNCTIONS ------------------------- 
           // Function to update the price
@@ -348,9 +346,61 @@ Ecwid.OnAPILoaded.add(function() {
           // Initial call to set the price when the page loads
           updatePrice();
   
-          // Attach the click event listener to the Add to Cart button
-          if (addToBagDiv) { listenUpdateCart(addToBagDiv); }
-          else if (addMoreDiv) { listenUpdateCart(addMoreDiv); }
+          // Function to attach listeners to cart buttons
+          function attachCartListeners() {
+            const addToBagDiv = document.querySelector(".details-product-purchase__add-to-bag");
+            const addMoreDiv = document.querySelector(".details-product-purchase__add-more");
+            
+            if (addToBagDiv) { listenUpdateCart(addToBagDiv); }
+            else if (addMoreDiv) { listenUpdateCart(addMoreDiv); }
+          }
+
+          // Initial attachment of listeners
+          attachCartListeners();
+
+          // Debounce function
+          function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+              const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+              };
+              clearTimeout(timeout);
+              timeout = setTimeout(later, wait);
+            };
+          }
+
+          // Debounced version of attachCartListeners
+          const debouncedAttachCartListeners = debounce(attachCartListeners, 100);
+
+          // Create a MutationObserver to watch for DOM changes
+          const observer = new MutationObserver((mutations) => {
+            try {
+              mutations.forEach((mutation) => {
+                if (mutation.type === 'childList') {
+                  // Check if the add to cart button was added
+                  const addedNodes = Array.from(mutation.addedNodes);
+                  const hasAddToCartButton = addedNodes.some(node => 
+                    node.querySelector && (
+                      node.querySelector(".details-product-purchase__add-to-bag") ||
+                      node.querySelector(".details-product-purchase__add-more")
+                    )
+                  );
+
+                  if (hasAddToCartButton) {
+                    // Re-attach the listeners
+                    debouncedAttachCartListeners();
+                  }
+                }
+              });
+            } catch (error) {
+              console.error('Error in MutationObserver callback:', error);
+            }
+          });
+
+          // Start observing the document with the configured parameters
+          observer.observe(document.body, { childList: true, subtree: true });
         }
     });
   });
@@ -364,4 +414,7 @@ Ecwid.OnAPILoaded.add(function() {
 
 
  
+
+
+
 
