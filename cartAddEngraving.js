@@ -304,10 +304,15 @@ Ecwid.OnAPILoaded.add(function() {
             const addButton = target.querySelector(".form-control__button");
             if (addButton) {
               console.log('Button found');
-              target.addEventListener('click', async (event) => {
+              
+              // Remove existing listeners first
+              const clone = target.cloneNode(true);
+              target.parentNode.replaceChild(clone, target);
+              
+              // Add new listener to the cloned element
+              clone.addEventListener('click', async (event) => {
                 try {
                   await handleAddToCart(event);
-                  // Add a small delay before removing the product
                   await new Promise(resolve => setTimeout(resolve, 100));
                   await handleRemoveFromCart(cartUpdateProduct);
                 } catch (error) {
@@ -348,6 +353,7 @@ Ecwid.OnAPILoaded.add(function() {
   
           // Function to attach listeners to cart buttons
           function attachCartListeners() {
+            console.log('Attaching cart listeners');
             const addToBagDiv = document.querySelector(".details-product-purchase__add-to-bag");
             const addMoreDiv = document.querySelector(".details-product-purchase__add-more");
             
@@ -414,6 +420,7 @@ Ecwid.OnAPILoaded.add(function() {
 
 
  
+
 
 
 
