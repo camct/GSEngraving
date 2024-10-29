@@ -154,7 +154,7 @@ Ecwid.OnAPILoaded.add(function() {
             });
           }
 
-          // Remove from cart
+          // Remove from cart (DISABLED)
           function handleRemoveFromCart(product) {
             return new Promise((resolve) => {
               product.options[OPTION_NAMES.ENGRAVING] = '0';
