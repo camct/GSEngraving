@@ -1,7 +1,6 @@
 Ecwid.OnAPILoaded.add(function() {
     Ecwid.OnPageLoaded.add(function(page) {
       if (page.type === 'PRODUCT') {
-          console.log(page.productId);
           const productIds = [55001151, 74102380, 506210440, 570262509, 94782479];
   
           // Check if the current product ID is in the allowed list
@@ -80,7 +79,6 @@ Ecwid.OnAPILoaded.add(function() {
   
               if (priceElement) {
                   priceElement.textContent = `$${newPrice.toFixed(2)}`;
-                  console.log(`price being updated to $${newPrice.toFixed(2)}`);
               }
             }
             catch (error) {
@@ -130,29 +128,21 @@ Ecwid.OnAPILoaded.add(function() {
           // Add to cart
           function handleAddToCart(event) {
             return new Promise((resolve, reject) => {
-              console.log("handle add to cart active");
               event.preventDefault();
               
               const product = getProduct();
               
               // Validate length input
               if (!product.options[OPTION_NAMES.LENGTH]) {
-                console.log('Length input not present');
                 return reject(new Error('Length input is required'));
               }
 
               // Add callback to the product object
               const cartProduct = {
                 ...product,
-                callback: function(success, addedProduct, cart, error) {
-                  console.log('success', success);
-                  console.log('product:', addedProduct);
-                  console.log('cart:', cart);
-                  console.log('error:', error);
-                  
+                callback: function(success, addedProduct, cart, error) {                  
                   if (success) {
                     resolve(product); // Resolve with our original product object
-                    console.log('product added to cart');
                   } else {
                     reject(error || new Error('Failed to add product to cart'));
                   }
@@ -241,12 +231,8 @@ Ecwid.OnAPILoaded.add(function() {
 
           // Listen for add to cart button
           function listenUpdateCart(target) {
-            const [targetVariable] = Object.keys({target});
-            console.log(`In updateCart with ${targetVariable}`);
             const addButton = target.querySelector(".form-control__button");
-            if (addButton) {
-              console.log('Button found');
-              
+            if (addButton) {            
               // Remove existing listeners first
               const clone = target.cloneNode(true);
               target.parentNode.replaceChild(clone, target);
@@ -263,7 +249,7 @@ Ecwid.OnAPILoaded.add(function() {
               });
             }
             else {
-              console.log('No button found');
+              console.error('No button found');
             }
           }
 
@@ -339,7 +325,6 @@ Ecwid.OnAPILoaded.add(function() {
           
           // Function to attach listeners to cart buttons
           function attachCartListeners() {
-            console.log('Attaching cart listeners');
             const addToBagDiv = document.querySelector(SELECTORS.ADD_TO_BAG);
             const addMoreDiv = document.querySelector(SELECTORS.ADD_MORE);
             
