@@ -308,18 +308,16 @@ Ecwid.OnAPILoaded.add(function() {
               engravingInput2.addEventListener('input', updatePrice);
             }
 
-            // Strap selection listeners
-            const strapRadios = document.querySelectorAll(SELECTORS.STRAP);
-            strapRadios.forEach(radio => {
-              radio.addEventListener('change', updatePrice);
-            });
+            // Strap selection listeners - FIXED
+            const strapContainer = document.querySelector('.details-product-option--Strap');
+            if (strapContainer) {
+              strapContainer.addEventListener('change', updatePrice);
+            }
 
-            // Grip color selection listener
-            const gripColorElement = document.querySelector(SELECTORS.GRIP_COLOR);
-            const gripColorWindow = gripColorElement ? gripColorElement.querySelector('.form-control--select.form-control.form-control--flexible') : null;
-            const gripColorSelect = gripColorWindow ? gripColorWindow.querySelector('.form-control__select') : null;
-            if (gripColorSelect) {
-              gripColorSelect.addEventListener('change', updatePrice);
+            // Grip color selection listener - FIXED
+            const gripColorContainer = document.querySelector('.details-product-option--Grip-Color');
+            if (gripColorContainer) {
+              gripColorContainer.addEventListener('change', updatePrice);
             }
           }
           
