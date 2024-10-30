@@ -352,6 +352,7 @@ Ecwid.OnAPILoaded.add(function() {
             initializePriceElement();
             attachCartListeners();
             attachProductListeners();
+            attachStrapListeners();
             const debouncedAttachCartListeners = debounce(attachCartListeners, CART_UPDATE_DELAY);
             setupMutationObserver(debouncedAttachCartListeners);
           } catch (error) {
