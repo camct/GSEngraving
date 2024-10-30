@@ -52,40 +52,43 @@ Ecwid.OnAPILoaded.add(function() {
           // Function to update the price --- CHANGES.... get the price values from ecwid so that we don't have to manually update them in the code
           function updatePrice() {
             try {
+              const priceElement = document.querySelector(SELECTORS.PRICE_DISPLAY);
+              if (!priceElement) return;
+
               const engravingInput1 = document.querySelector(SELECTORS.ENGRAVING_1);
               const engravingInput2 = document.querySelector(SELECTORS.ENGRAVING_2);
               const engravingText1 = engravingInput1 ? engravingInput1.value : '';
               const engravingText2 = engravingInput2 ? engravingInput2.value : '';
-  
-              // STRAP
-              const strapRadio = document.querySelector(SELECTORS.STRAP);
-              const strapValue = strapRadio ? strapRadio.value : '';
-  
-              // GRIP COLOR
-              const gripColorSelect = document.querySelector(SELECTORS.GRIP_COLOR);
-              const gripColorValue = gripColorSelect ? gripColorSelect.value : '';
-  
-  
+
+              // Rest of your price calculation logic...
               const charCount = engravingText1.length + engravingText2.length;
               const engravingCost = engraveInd[charCount];
-  
-              // Update the displayed price
-              const priceElement = document.querySelector(SELECTORS.PRICE_DISPLAY);
+
+              const strapRadio = document.querySelector(SELECTORS.STRAP);
+              const strapValue = strapRadio ? strapRadio.value : '';
+              const gripColorSelect = document.querySelector(SELECTORS.GRIP_COLOR);
+              const gripColorValue = gripColorSelect ? gripColorSelect.value : '';
+
               const gripPrice = (gripColorValue === 'Cork') ? CORK_PRICE : 0;
-              let strapPrice;
-              if (strapValue in STRAP_PRICES) {strapPrice = STRAP_PRICES[strapValue];}
-              else {strapPrice = STRAP_PRICES['mtnStrap'];}
+              let strapPrice = STRAP_PRICES[strapValue] ?? STRAP_PRICES['mtnStrap'];
               const newPrice = basePrice + engravingCost + gripPrice + strapPrice;
-  
-              if (priceElement) {
-                  priceElement.textContent = `$${newPrice.toFixed(2)}`;
-              }
+
+              priceElement.textContent = `$${newPrice.toFixed(2)}`;
             }
             catch (error) {
               console.error('Error updating price:', error);
             }
           }
-  
+
+          // Function to initialize price element
+          function initializePriceElement() {
+            const priceElement = document.querySelector(SELECTORS.PRICE_DISPLAY);
+            if (priceElement) {
+              const clone = priceElement.cloneNode(true);
+              priceElement.parentNode.replaceChild(clone, priceElement);
+            }
+          }
+
           // Function to get the current product configuration
           function getProduct() {
             try {
@@ -266,39 +269,19 @@ Ecwid.OnAPILoaded.add(function() {
             };
           }
 
-          // Create a MutationObserver to watch for DOM changes
-          function setupMutationObserver(debouncedAttachCartListeners) {
-            const observer = new MutationObserver((mutations) => {
-            try {
-              mutations.forEach((mutation) => {
-                if (mutation.type === 'childList') {
-                  // Check if the add to cart button was added
-                  const addedNodes = Array.from(mutation.addedNodes);
-                  const hasAddToCartButton = addedNodes.some(node => 
-                    node.querySelector && (
-                      node.querySelector(SELECTORS.ADD_TO_BAG) ||
-                      node.querySelector(SELECTORS.ADD_MORE)
-                    )
-                  );
-
-                  if (hasAddToCartButton) {
-                    // Re-attach the listeners
-                    debouncedAttachCartListeners();
-                  }
-                }
-              });
-            } catch (error) {
-              console.error('Error in MutationObserver callback:', error);
-            }
-          });
-
-          // Start observing the document with the configured parameters
-          observer.observe(document.body, { childList: true, subtree: true });
+          // Function to attach strap-specific listeners
+          function attachStrapListeners() {
+            const strapInputs = document.querySelectorAll('input[name="Strap"]');
+            strapInputs.forEach(input => {
+              const clone = input.cloneNode(true);
+              input.parentNode.replaceChild(clone, input);
+              clone.addEventListener('change', updatePrice);
+            });
           }
 
-          // Function to attach all product-related event listeners
+          // Function to attach all other product-related event listeners
           function attachProductListeners() {
-            // Engraving input listeners
+            // Engraving inputs
             const engravingInput1 = document.querySelector(SELECTORS.ENGRAVING_1);
             const engravingInput2 = document.querySelector(SELECTORS.ENGRAVING_2);
             if (engravingInput1) {
@@ -308,19 +291,52 @@ Ecwid.OnAPILoaded.add(function() {
               engravingInput2.addEventListener('input', updatePrice);
             }
 
-            // Strap selection listeners - FIXED
-            const strapContainer = document.querySelector('.details-product-option--Strap');
-            if (strapContainer) {
-              strapContainer.addEventListener('change', updatePrice);
-            }
-
-            // Grip color selection listener - FIXED
-            const gripColorContainer = document.querySelector('.details-product-option--Grip-Color');
-            if (gripColorContainer) {
-              gripColorContainer.addEventListener('change', updatePrice);
+            const gripColorSelect = document.querySelector('.details-product-option--Grip-Color .form-control__select');
+            if (gripColorSelect) {
+              gripColorSelect.addEventListener('change', updatePrice);
             }
           }
-          
+
+          // Update the mutation observer to call the specific function
+          function setupMutationObserver(debouncedAttachCartListeners) {
+            const observer = new MutationObserver((mutations) => {
+              try {
+                mutations.forEach((mutation) => {
+                  if (mutation.type === 'childList') {
+                    const addedNodes = Array.from(mutation.addedNodes);
+                    const hasAddToCartButton = addedNodes.some(node => 
+                      node.querySelector && (
+                        node.querySelector(SELECTORS.ADD_TO_BAG) ||
+                        node.querySelector(SELECTORS.ADD_MORE)
+                      )
+                    );
+                    const hasStrapOptions = addedNodes.some(node =>
+                      node.querySelector && node.querySelector('input[name="Strap"]')
+                    );
+
+                    if (hasAddToCartButton) {
+                      debouncedAttachCartListeners();
+                    }
+                    if (hasStrapOptions) {
+                      attachStrapListeners();  // Call the specific function instead
+                    }
+                  }
+                });
+              } catch (error) {
+                console.error('Error in MutationObserver callback:', error);
+              }
+            });
+            
+            observer.observe(document.body, { childList: true, subtree: true });
+            
+            // Add cleanup when leaving product page
+            Ecwid.OnPageLoaded.add(function(page) {
+              if (page.type !== 'PRODUCT') {
+                observer.disconnect();
+              }
+            });
+          }
+
           // Function to attach listeners to cart buttons
           function attachCartListeners() {
             const addToBagDiv = document.querySelector(SELECTORS.ADD_TO_BAG);
@@ -333,6 +349,7 @@ Ecwid.OnAPILoaded.add(function() {
 
           // ------------------------- Initialization ------------------------- 
           try {
+            initializePriceElement();
             attachCartListeners();
             attachProductListeners();
             const debouncedAttachCartListeners = debounce(attachCartListeners, CART_UPDATE_DELAY);
