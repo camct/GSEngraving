@@ -28,6 +28,7 @@ Ecwid.OnAPILoaded.add(function() {
   
           const BASE_PRICES = {55001151: 119.95, 74102380: 131.95, 506210440: 136.95, 570262509: 119.95, 94782479: 71.00};
           const CORK_PRICE = 14;
+          const SINGLE_HIKING_PRICE = -59.98;
           const STRAP_PRICES = {'None': -3, 'Adjustable': 10, 'Fixed': 0, 'mtnStrap': 19.99};
           const CURRENT = {
             [OPTION_NAMES.STRAP]: null,
@@ -46,6 +47,12 @@ Ecwid.OnAPILoaded.add(function() {
             [OPTION_NAMES.ENGRAVING]: 0,
           };
 
+          if (page.productId === 570262509) {
+            OPTION_NAMES.HIKING_QUANTITY = 'Quantity';
+            CURRENT[OPTION_NAMES.HIKING_QUANTITY] = null;
+            CURRENT_PRICE[OPTION_NAMES.HIKING_QUANTITY] = 0;
+          }
+
           // Timing constants
           const CART_UPDATE_DELAY = 100;
 
@@ -61,7 +68,8 @@ Ecwid.OnAPILoaded.add(function() {
             PRICE_DISPLAY: '.details-product-price__value.ec-price-item.notranslate',
             ADD_TO_BAG: '.details-product-purchase__add-to-bag',
             ADD_MORE: '.details-product-purchase__add-more',
-            QUANTITY: "input[name='ec-qty']"
+            QUANTITY: "input[name='ec-qty']",
+            HIKING_QUANTITY: '.details-product-option--Quantity select'
           };
 
           const basePrice = BASE_PRICES[page.productId];
@@ -84,7 +92,8 @@ Ecwid.OnAPILoaded.add(function() {
               const totalPrice = basePrice + 
                 CURRENT_PRICE[OPTION_NAMES.STRAP] + 
                 CURRENT_PRICE[OPTION_NAMES.GRIP_COLOR] + 
-                CURRENT_PRICE[OPTION_NAMES.ENGRAVING];
+                CURRENT_PRICE[OPTION_NAMES.ENGRAVING] +
+                (page.productId === 570262509 ? CURRENT_PRICE[OPTION_NAMES.HIKING_QUANTITY] : 0);
               
               console.log('Price calculation:', {
                 basePrice,
@@ -94,55 +103,44 @@ Ecwid.OnAPILoaded.add(function() {
                 totalPrice
               });
 
-              priceElement.textContent = `$${totalPrice.toFixed(2)}`;
+              // Create a new price element and replace the old one
+              const newPriceElement = priceElement.cloneNode(false);
+              newPriceElement.textContent = `$${totalPrice.toFixed(2)}`;
+              priceElement.parentNode.replaceChild(newPriceElement, priceElement);
             }
             catch (error) {
               console.error('Error updating price:', error);
             }
           }
 
-          // Function to initialize price element
-          function initializePriceElement() {
-            const priceElement = document.querySelector(SELECTORS.PRICE_DISPLAY);
-            if (priceElement) {
-              const clone = priceElement.cloneNode(true);
-              priceElement.parentNode.replaceChild(clone, priceElement);
-            }
-          }
-
           // Function to get the current product configuration
           function getProduct() {
             try {
-              // Engraving
-              const engravingInput1 = document.querySelector(SELECTORS.ENGRAVING_1);
-              const engravingInput2 = document.querySelector(SELECTORS.ENGRAVING_2);
-              const engravingText1 = engravingInput1 ? engravingInput1.value : '';
-              const engravingText2 = engravingInput2 ? engravingInput2.value : '';
-              const charCount = engravingText1.length + engravingText2.length;
-              const engravingCost = customEngraving[charCount];
-
-              // Get all select values
-              const basketSizeSelect = document.querySelector(SELECTORS.BASKET_SIZE);
-              const gripColorSelect = document.querySelector(SELECTORS.GRIP_COLOR);
-              const basketColorSelect = document.querySelector(SELECTORS.BASKET_COLOR);
-              const strapRadio = document.querySelector(SELECTORS.STRAP);
-              const lengthInput = document.querySelector(SELECTORS.LENGTH);
+              console.log('Starting getProduct()');
+              
+              // Get quantity from DOM since it's not tracked in CURRENT
               const quantityCheck = document.querySelector(SELECTORS.QUANTITY);
-
-              return {
+              console.log('Quantity element found:', !!quantityCheck, 'Value:', quantityCheck?.value);
+              
+              const product = {
                 id: page.productId,
                 quantity: quantityCheck ? parseInt(quantityCheck.value, 10) || 1 : 1,
                 options: {
-                  [OPTION_NAMES.BASKET_SIZE]: basketSizeSelect?.value || '',
-                  [OPTION_NAMES.GRIP_COLOR]: gripColorSelect?.value || '',
-                  [OPTION_NAMES.BASKET_COLOR]: basketColorSelect?.value || '',
-                  [OPTION_NAMES.STRAP]: strapRadio?.value || '',
-                  [OPTION_NAMES.ENGRAVING]: engravingCost,
-                  [OPTION_NAMES.LENGTH]: lengthInput?.value || '',
-                  [OPTION_NAMES.ENGRAVING_1]: engravingText1,
-                  [OPTION_NAMES.ENGRAVING_2]: engravingText2
+                  [OPTION_NAMES.BASKET_SIZE]: CURRENT[OPTION_NAMES.BASKET_SIZE] || '',
+                  [OPTION_NAMES.GRIP_COLOR]: CURRENT[OPTION_NAMES.GRIP_COLOR] || '',
+                  [OPTION_NAMES.BASKET_COLOR]: CURRENT[OPTION_NAMES.BASKET_COLOR] || '',
+                  [OPTION_NAMES.STRAP]: CURRENT[OPTION_NAMES.STRAP] || '',
+                  [OPTION_NAMES.ENGRAVING]: CURRENT[OPTION_NAMES.ENGRAVING] || '0',
+                  [OPTION_NAMES.LENGTH]: CURRENT[OPTION_NAMES.LENGTH] || '',
+                  [OPTION_NAMES.ENGRAVING_1]: CURRENT[OPTION_NAMES.ENGRAVING_1] || '',
+                  [OPTION_NAMES.ENGRAVING_2]: CURRENT[OPTION_NAMES.ENGRAVING_2] || ''
                 }
               };
+
+              console.log('Current values:', CURRENT);
+              console.log('Product to be returned:', product);
+              
+              return product;
             } catch (error) {
               console.error('Error in getProduct:', error);
               return null;
@@ -175,38 +173,38 @@ Ecwid.OnAPILoaded.add(function() {
                 totalLength: totalEngravingLength
               });
 
-              if (totalEngravingLength > 40) {
-                  // Create and show error popup
-                  const popup = document.createElement('div');
-                  popup.id = 'engraving-error-popup';
-                  popup.style.cssText = `
-                      position: fixed;
-                      top: 50%;
-                      left: 50%;
-                      transform: translate(-50%, -50%);
-                      background: #ff4444;
-                      color: white;
-                      padding: 20px;
-                      border-radius: 5px;
-                      z-index: 1000;
-                      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-                  `;
-                  popup.textContent = 'Engraving text is too long. Maximum 40 characters total.';
-                  document.body.appendChild(popup);
+              // if (totalEngravingLength > 40) {
+              //     // Create and show error popup
+              //     const popup = document.createElement('div');
+              //     popup.id = 'engraving-error-popup';
+              //     popup.style.cssText = `
+              //         position: fixed;
+              //         top: 50%;
+              //         left: 50%;
+              //         transform: translate(-50%, -50%);
+              //         background: #ff4444;
+              //         color: white;
+              //         padding: 20px;
+              //         border-radius: 5px;
+              //         z-index: 1000;
+              //         box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+              //     `;
+              //     popup.textContent = 'Engraving text is too long. Maximum 40 characters total.';
+              //     document.body.appendChild(popup);
 
-                  // Add shake animation to button
-                  const button = document.querySelector(SELECTORS.ADD_TO_BAG);
-                  button.style.animation = 'shake-cart-button 0.5s';
-                  button.style.animationIterationCount = '1';
+              //     // Add shake animation to button
+              //     const button = document.querySelector(SELECTORS.ADD_TO_BAG);
+              //     button.style.animation = 'shake-cart-button 0.5s';
+              //     button.style.animationIterationCount = '1';
 
-                  // Remove popup and animation after delay
-                  setTimeout(() => {
-                      document.body.removeChild(popup);
-                      button.style.animation = '';
-                  }, 3000);
+              //     // Remove popup and animation after delay
+              //     setTimeout(() => {
+              //         document.body.removeChild(popup);
+              //         button.style.animation = '';
+              //     }, 3000);
 
-                  return reject(new Error('Engraving text too long'));
-              }
+              //     return reject(new Error('Engraving text too long'));
+              // }
 
               // Add callback to the product object
               const cartProduct = {
@@ -374,6 +372,13 @@ Ecwid.OnAPILoaded.add(function() {
                     const engravingText2 = engravingInput2 ? engravingInput2.value : '';
                     const engravingText1 = engravingInput1.value;
                     const charCount = engravingText1.length + engravingText2.length;
+                    
+                    // If over 40 characters, revert to previous value
+                    if (charCount > 40) {
+                        engravingInput1.value = engravingInput1.value.slice(0, -1);
+                        return;
+                    }
+                    
                     console.log('Engraving 1 calculation:', {
                         text1: engravingText1,
                         text2: engravingText2,
@@ -392,6 +397,13 @@ Ecwid.OnAPILoaded.add(function() {
                     const engravingText1 = engravingInput1 ? engravingInput1.value : '';
                     const engravingText2 = engravingInput2.value;
                     const charCount = engravingText1.length + engravingText2.length;
+                    
+                    // If over 40 characters, revert to previous value
+                    if (charCount > 40) {
+                        engravingInput2.value = engravingInput2.value.slice(0, -1);
+                        return;
+                    }
+                    
                     console.log('Engraving 2 calculation:', {
                         text1: engravingText1,
                         text2: engravingText2,
@@ -405,7 +417,7 @@ Ecwid.OnAPILoaded.add(function() {
             }
 
             // Grip color listener
-            const gripColorSelect = document.querySelector('.details-product-option--Grip-Color .form-control__select');
+            const gripColorSelect = document.querySelector(SELECTORS.GRIP_COLOR);
             console.log('Found grip color select:', !!gripColorSelect);
             
             if (gripColorSelect) {
@@ -451,6 +463,54 @@ Ecwid.OnAPILoaded.add(function() {
                     });
                     CURRENT[OPTION_NAMES.BASKET_COLOR] = basketColorValue;
                 });
+            }
+
+            // Length listener
+            const lengthInput = document.querySelector(SELECTORS.LENGTH);
+            console.log('Found length input:', !!lengthInput);
+            
+            if (lengthInput) {
+              lengthInput.addEventListener('input', () => {
+                CURRENT[OPTION_NAMES.LENGTH] = lengthInput.value;
+                console.log('Length input changed:', lengthInput.value);
+              });
+            }
+
+            // Hiking quantity listener
+            if (page.productId === 570262509) {
+              console.log('Processing hiking quantity for product 570262509');
+              const hikingQuantitySelect = document.querySelector(SELECTORS.HIKING_QUANTITY);
+              console.log('Hiking quantity select element:', hikingQuantitySelect);
+              
+              if (hikingQuantitySelect) {
+                hikingQuantitySelect.addEventListener('change', () => {
+                  const hikingQuantityValue = hikingQuantitySelect.value;
+                  const hikingQuantityPrice = hikingQuantityValue ? SINGLE_HIKING_PRICE : 0;
+                  console.log('Hiking quantity calculations:', {
+                    value: hikingQuantityValue,
+                    price: hikingQuantityPrice,
+                  });
+
+                  if (hikingQuantityPrice === SINGLE_HIKING_PRICE) {
+                    console.log('Single hiking pole selected, hiding engraving 2');
+                    document.querySelector(SELECTORS.ENGRAVING_2).style.display = 'none';
+                  } else {
+                    console.log('Pair of poles selected, showing engraving 2');
+                    document.querySelector(SELECTORS.ENGRAVING_2).style.display = 'block';
+                  }
+
+                  console.log('Hiking quantity changed:', {
+                    newValue: hikingQuantityValue,
+                    previousValue: CURRENT[OPTION_NAMES.HIKING_QUANTITY],
+                    newPrice: hikingQuantityPrice
+                  });
+
+                  CURRENT[OPTION_NAMES.HIKING_QUANTITY] = hikingQuantityValue;
+                  CURRENT_PRICE[OPTION_NAMES.HIKING_QUANTITY] = hikingQuantityPrice;
+                });
+              } else {
+                console.log('Hiking quantity select element not found');
+              }
             }
           }
 
@@ -548,18 +608,6 @@ Ecwid.OnAPILoaded.add(function() {
 
           // ------------------------- Initialization ------------------------- 
           try {
-            // Add near the top of initialization
-            const style = document.createElement('style');
-            style.textContent = `
-                @keyframes shake-cart-button {
-                    0%, 100% { transform: translateX(0); }
-                    25% { transform: translateX(-10px); }
-                    75% { transform: translateX(10px); }
-                }
-            `;
-            document.head.appendChild(style);
-            // setup price display
-            initializePriceElement();
             initializeCurrentValues();
 
             // setup listeners
@@ -576,6 +624,3 @@ Ecwid.OnAPILoaded.add(function() {
         }
     });
   });
-
-
-
