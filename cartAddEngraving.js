@@ -471,8 +471,13 @@ Ecwid.OnAPILoaded.add(function() {
             
             if (lengthInput) {
               lengthInput.addEventListener('input', () => {
-                CURRENT[OPTION_NAMES.LENGTH] = lengthInput.value;
-                console.log('Length input changed:', lengthInput.value);
+                let lengthInputValue = lengthInput.value;
+                if (page.productId === 94782479 && lengthInputValue >= 42) {
+                  lengthInputValue = 42;
+                  lengthInput.value = 42;
+                }
+                CURRENT[OPTION_NAMES.LENGTH] = lengthInputValue;
+                console.log('Length input changed:', lengthInputValue);
               });
             }
 
