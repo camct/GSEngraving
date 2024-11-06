@@ -8,7 +8,7 @@
 Ecwid.OnAPILoaded.add(function() {
     Ecwid.OnPageLoaded.add(function(page) {
       if (page.type === 'PRODUCT') {
-          const productIds = [55001151, 74102380, 506210440, 570262509, 94782479];
+          const productIds = [707439498, 707449474, 707449472, 707464855, 707464853];
   
           // Check if the current product ID is in the allowed list
           if (!productIds.includes(page.productId)) {return;}
@@ -26,7 +26,7 @@ Ecwid.OnAPILoaded.add(function() {
             ENGRAVING_2: 'Engraving - Ski Pole 2'
           };
   
-          const BASE_PRICES = {55001151: 119.95, 74102380: 131.95, 506210440: 136.95, 570262509: 119.95, 94782479: 71.00};
+          const BASE_PRICES = {707439498: 119.95, 707449474: 131.95, 707449472: 136.95, 707464855: 119.95, 707464853: 71.00};
           const CORK_PRICE = 14;
           const SINGLE_HIKING_PRICE = -59.98;
           const STRAP_PRICES = {'None': -3, 'Adjustable': 10, 'Fixed': 0, 'mtnStrap': 19.99};
@@ -47,7 +47,7 @@ Ecwid.OnAPILoaded.add(function() {
             [OPTION_NAMES.ENGRAVING]: 0,
           };
 
-          if (page.productId === 570262509) {
+          if (page.productId === 707464855) {
             OPTION_NAMES.HIKING_QUANTITY = 'Quantity';
             CURRENT[OPTION_NAMES.HIKING_QUANTITY] = null;
             CURRENT_PRICE[OPTION_NAMES.HIKING_QUANTITY] = 0;
@@ -93,7 +93,7 @@ Ecwid.OnAPILoaded.add(function() {
                 CURRENT_PRICE[OPTION_NAMES.STRAP] + 
                 CURRENT_PRICE[OPTION_NAMES.GRIP_COLOR] + 
                 CURRENT_PRICE[OPTION_NAMES.ENGRAVING] +
-                (page.productId === 570262509 ? CURRENT_PRICE[OPTION_NAMES.HIKING_QUANTITY] : 0);
+                (page.productId === 707464855 ? CURRENT_PRICE[OPTION_NAMES.HIKING_QUANTITY] : 0);
               
               console.log('Price calculation:', {
                 basePrice,
@@ -386,7 +386,8 @@ Ecwid.OnAPILoaded.add(function() {
                         newPrice: engraveInd[charCount]
                     });
                     CURRENT_PRICE[OPTION_NAMES.ENGRAVING] = engraveInd[charCount];
-                    CURRENT[OPTION_NAMES.ENGRAVING_1] = customEngraving[charCount];
+                    CURRENT[OPTION_NAMES.ENGRAVING_1] = engravingText1;
+                    CURRENT[OPTION_NAMES.ENGRAVING] = customEngraving[charCount];
                     updatePrice();
                 });
             }
@@ -411,7 +412,8 @@ Ecwid.OnAPILoaded.add(function() {
                         newPrice: engraveInd[charCount]
                     });
                     CURRENT_PRICE[OPTION_NAMES.ENGRAVING] = engraveInd[charCount];
-                    CURRENT[OPTION_NAMES.ENGRAVING_2] = customEngraving[charCount];
+                    CURRENT[OPTION_NAMES.ENGRAVING_2] = engravingText2;
+                    CURRENT[OPTION_NAMES.ENGRAVING] = customEngraving[charCount];
                     updatePrice();
                 });
             }
@@ -472,7 +474,7 @@ Ecwid.OnAPILoaded.add(function() {
             if (lengthInput) {
               lengthInput.addEventListener('input', () => {
                 let lengthInputValue = lengthInput.value;
-                if (page.productId === 94782479 && lengthInputValue >= 42) {
+                if (page.productId === 707464853 && lengthInputValue >= 42) {
                   lengthInputValue = 42;
                   lengthInput.value = 42;
                 }
@@ -482,8 +484,8 @@ Ecwid.OnAPILoaded.add(function() {
             }
 
             // Hiking quantity listener
-            if (page.productId === 570262509) {
-              console.log('Processing hiking quantity for product 570262509');
+            if (page.productId === 707464855) {
+              console.log('Processing hiking quantity for product 707464855');
               const hikingQuantitySelect = document.querySelector(SELECTORS.HIKING_QUANTITY);
               console.log('Hiking quantity select element:', hikingQuantitySelect);
               
