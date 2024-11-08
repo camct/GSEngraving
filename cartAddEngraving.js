@@ -103,10 +103,13 @@ Ecwid.OnAPILoaded.add(function() {
                 totalPrice
               });
 
-              // Create a new price element and replace the old one
-              const newPriceElement = priceElement.cloneNode(false);
-              newPriceElement.textContent = `$${totalPrice.toFixed(2)}`;
-              priceElement.parentNode.replaceChild(newPriceElement, priceElement);
+              // Instead of creating a new element, directly update the text content
+              priceElement.textContent = `$${totalPrice.toFixed(2)}`;
+              
+              // If that doesn't work, try forcing a DOM update
+              requestAnimationFrame(() => {
+                  priceElement.textContent = `$${totalPrice.toFixed(2)}`;
+              });
             }
             catch (error) {
               console.error('Error updating price:', error);
@@ -156,10 +159,51 @@ Ecwid.OnAPILoaded.add(function() {
               const product = getProduct();
               console.log('Product configuration:', product);
               
-              // Validate length input
+              // Validate length input with user feedback
               if (!product.options[OPTION_NAMES.LENGTH]) {
-                console.log('Length validation failed');
-                return reject(new Error('Length input is required'));
+                  // Create and show error popup
+                  const popup = document.createElement('div');
+                  popup.id = 'length-error-popup';
+                  popup.style.cssText = `
+                      position: fixed;
+                      top: 50%;
+                      left: 50%;
+                      transform: translate(-50%, -50%);
+                      background: #ff4444;
+                      color: white;
+                      padding: 20px;
+                      border-radius: 5px;
+                      z-index: 1000;
+                      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+                      text-align: center;
+                  `;
+                  popup.textContent = 'Please select a length for your poles before adding to cart.';
+                  document.body.appendChild(popup);
+
+                  // Add shake animation to button
+                  const button = document.querySelector(SELECTORS.ADD_TO_BAG) || document.querySelector(SELECTORS.ADD_MORE);
+                  if (button) {
+                      button.style.animation = 'shake-cart-button 0.5s';
+                      button.style.animationIterationCount = '1';
+                  }
+
+                  // Remove popup and animation after delay
+                  setTimeout(() => {
+                      document.body.removeChild(popup);
+                      if (button) {
+                          button.style.animation = '';
+                      }
+                  }, 3000);
+
+                  // Scroll to length input
+                  const lengthInput = document.querySelector(SELECTORS.LENGTH);
+                  if (lengthInput) {
+                      lengthInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                      lengthInput.focus();
+                  }
+
+                  console.log('Length validation failed');
+                  return reject(new Error('Length input is required'));
               }
 
               // Check engraving length
@@ -556,62 +600,78 @@ Ecwid.OnAPILoaded.add(function() {
             updatePrice();
           }
 
-          // Update the mutation observer to call the specific function
-          function setupMutationObserver(debouncedAttachCartListeners) {
-            const observer = new MutationObserver((mutations) => {
-              try {
-                mutations.forEach((mutation) => {
-                  if (mutation.type === 'childList') {
-                    const addedNodes = Array.from(mutation.addedNodes);
-                    const hasAddToCartButton = addedNodes.some(node => 
-                      node.querySelector && (
-                        node.querySelector(SELECTORS.ADD_TO_BAG) ||
-                        node.querySelector(SELECTORS.ADD_MORE)
-                      )
-                    );
-                    const hasStrapOptions = addedNodes.some(node =>
-                      node.querySelector && node.querySelector('input[name="Strap"]')
-                    );
-
-                    if (hasAddToCartButton) {
-                      debouncedAttachCartListeners();
-                    }
-                    if (hasStrapOptions) {
-                      attachStrapListeners();  // Call the specific function instead
-                    }
-                  }
-                });
-              } catch (error) {
-                console.error('Error in MutationObserver callback:', error);
-              }
-            });
-            
-            observer.observe(document.body, { childList: true, subtree: true });
-            
-            // Define cleanup function
-            const cleanup = () => {
-                console.log('Cleaning up mutation observer');
-                observer.disconnect();
-                // Clean up any other listeners or resources
-            };
-            
-            // Add cleanup trigger for page changes
-            Ecwid.OnPageLoaded.add(function(page) {
-                if (page.type !== 'PRODUCT') {
-                    cleanup();
-                }
-            });
-          }
-
           // Function to attach listeners to cart buttons
           function attachCartListeners() {
             const addToBagDiv = document.querySelector(SELECTORS.ADD_TO_BAG);
             const addMoreDiv = document.querySelector(SELECTORS.ADD_MORE);
             
-            if (addToBagDiv) { listenUpdateCart(addToBagDiv); }
-            else if (addMoreDiv) { listenUpdateCart(addMoreDiv); }
+            if (addToBagDiv || addMoreDiv) {
+                const targetDiv = addToBagDiv || addMoreDiv;
+                
+                // Remove existing button and its listeners
+                const oldButton = targetDiv.querySelector(".form-control__button");
+                if (oldButton) {
+                    // Create a new button with the same properties
+                    const newButton = oldButton.cloneNode(true);
+                    oldButton.parentNode.replaceChild(newButton, oldButton);
+                    
+                    // Add our listener to the new button
+                    newButton.addEventListener('click', async (event) => {
+                        console.log('Custom cart button clicked');
+                        event.preventDefault();
+                        event.stopPropagation(); // Prevent event bubbling
+                        
+                        try {
+                            await handleAddToCart(event);
+                        } catch (error) {
+                            console.error('Error handling cart update:', error);
+                        }
+                    }, true); // Use capture phase
+                }
+            }
           }
 
+          // Update the mutation observer to be more specific
+          function setupMutationObserver(debouncedAttachCartListeners) {
+            const observer = new MutationObserver((mutations) => {
+                try {
+                    for (const mutation of mutations) {
+                        if (mutation.type === 'childList') {
+                            // Check if the mutation involves our target buttons or strap options
+                            const hasRelevantChanges = Array.from(mutation.addedNodes).some(node => {
+                                if (node.querySelector) {
+                                    const addButton = node.querySelector(SELECTORS.ADD_TO_BAG);
+                                    const moreButton = node.querySelector(SELECTORS.ADD_MORE);
+                                    const strapInputs = node.querySelector('input[name="Strap"]');
+                                    return addButton || moreButton || strapInputs;
+                                }
+                                return false;
+                            });
+
+                            if (hasRelevantChanges) {
+                                console.log('DOM change detected');
+                                // Use setTimeout to ensure DOM is fully updated
+                                setTimeout(() => {
+                                    debouncedAttachCartListeners();
+                                    attachStrapListeners();
+                                }, 0);
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error in MutationObserver callback:', error);
+                }
+            });
+            
+            observer.observe(document.body, {
+                childList: true,
+                subtree: true,
+                attributes: true,
+                attributeFilter: ['class']
+            });
+            
+            return observer;
+          }
 
           // ------------------------- Initialization ------------------------- 
           try {
