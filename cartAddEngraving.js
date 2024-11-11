@@ -72,7 +72,7 @@ Ecwid.OnAPILoaded.add(function() {
             ADD_TO_BAG: '.details-product-purchase__add-to-bag',
             ADD_MORE: '.details-product-purchase__add-more',
             QUANTITY: "input[name='ec-qty']",
-            HIKING_QUANTITY: '.details-product-option--Quantity select'
+            HIKING_QUANTITY: 'input[name="Quantity"]:checked'
           };
 
           const basePrice = BASE_PRICES[page.productId];
@@ -574,6 +574,7 @@ Ecwid.OnAPILoaded.add(function() {
           function initializeCurrentValues() {
             console.log('Starting initializeCurrentValues()');
             
+            // Get all form elements
             const strapRadio = document.querySelector(SELECTORS.STRAP);
             const gripColorSelect = document.querySelector(SELECTORS.GRIP_COLOR);
             const basketSizeSelect = document.querySelector(SELECTORS.BASKET_SIZE);
@@ -581,27 +582,43 @@ Ecwid.OnAPILoaded.add(function() {
             const lengthInput = document.querySelector(SELECTORS.LENGTH);
             const engravingInput1 = document.querySelector(SELECTORS.ENGRAVING_1);
             const engravingInput2 = document.querySelector(SELECTORS.ENGRAVING_2);
+            const hikingQuantityRadio = page.productId === 707464855 ? 
+                document.querySelector(SELECTORS.HIKING_QUANTITY) : null;
 
-            console.log('Found form elements:', {
-              strap: !!strapRadio,
-              gripColor: !!gripColorSelect,
-              basketSize: !!basketSizeSelect,
-              basketColor: !!basketColorSelect,
-              length: !!lengthInput,
-              engraving1: !!engravingInput1,
-              engraving2: !!engravingInput2
-            });
-
+            // Initialize current values
             CURRENT[OPTION_NAMES.STRAP] = strapRadio ? strapRadio.value : null;
             CURRENT[OPTION_NAMES.GRIP_COLOR] = gripColorSelect ? gripColorSelect.value : null;
             CURRENT[OPTION_NAMES.BASKET_SIZE] = basketSizeSelect ? basketSizeSelect.value : null;
             CURRENT[OPTION_NAMES.BASKET_COLOR] = basketColorSelect ? basketColorSelect.value : null;
             CURRENT[OPTION_NAMES.LENGTH] = lengthInput ? lengthInput.value : null;
-            CURRENT[OPTION_NAMES.ENGRAVING] = 0; // Initialize engraving cost to 0
+            CURRENT[OPTION_NAMES.ENGRAVING] = '0'; // Initialize engraving cost to '0' string to match customEngraving array
             CURRENT[OPTION_NAMES.ENGRAVING_1] = engravingInput1 ? engravingInput1.value : null;
             CURRENT[OPTION_NAMES.ENGRAVING_2] = engravingInput2 ? engravingInput2.value : null;
 
-            // Initial price calculation without updating any specific field
+            // Initialize prices
+            CURRENT_PRICE[OPTION_NAMES.STRAP] = strapRadio ? STRAP_PRICES[strapRadio.value] || 0 : 0;
+            CURRENT_PRICE[OPTION_NAMES.GRIP_COLOR] = gripColorSelect && gripColorSelect.value === 'Cork' ? CORK_PRICE : 0;
+            CURRENT_PRICE[OPTION_NAMES.ENGRAVING] = 0;
+
+            // Add hiking quantity initialization if applicable
+            if (page.productId === 707464855) {
+                CURRENT[OPTION_NAMES.HIKING_QUANTITY] = hikingQuantityRadio ? hikingQuantityRadio.value : null;
+                CURRENT_PRICE[OPTION_NAMES.HIKING_QUANTITY] = hikingQuantityRadio && 
+                    hikingQuantityRadio.value === 'Single Hiking Stick' ? SINGLE_HIKING_PRICE : 0;
+            }
+
+            console.log('Found form elements:', {
+                strap: !!strapRadio,
+                gripColor: !!gripColorSelect,
+                basketSize: !!basketSizeSelect,
+                basketColor: !!basketColorSelect,
+                length: !!lengthInput,
+                engraving1: !!engravingInput1,
+                engraving2: !!engravingInput2,
+                hikingQuantity: !!hikingQuantityRadio
+            });
+
+            // Initial price calculation
             updatePrice();
           }
 
@@ -644,11 +661,20 @@ Ecwid.OnAPILoaded.add(function() {
                         if (mutation.type === 'childList') {
                             // Check mutations separately for each type of change
                             const hasCartButtonChanges = Array.from(mutation.addedNodes).some(node => {
-                                if (node.querySelector) {
-                                    const addButton = node.querySelector(SELECTORS.ADD_TO_BAG);
-                                    const moreButton = node.querySelector(SELECTORS.ADD_MORE);
-                                    return addButton || moreButton;
+                                // First check if the added node is one of our target buttons
+                                if (node.matches) {
+                                    return node.matches(SELECTORS.ADD_TO_BAG) || node.matches(SELECTORS.ADD_MORE);
                                 }
+                                
+                                // Then check if any of the parent nodes is the controls container
+                                let parent = node.parentElement;
+                                while (parent) {
+                                    if (parent.matches && parent.matches('.details-product-purchase__controls')) {
+                                        return true;
+                                    }
+                                    parent = parent.parentElement;
+                                }
+                                
                                 return false;
                             });
 
@@ -760,14 +786,6 @@ Ecwid.OnAPILoaded.add(function() {
                 }
             });
             observers.length = 0; // Clear the array
-            
-            // Reset state
-            Object.keys(CURRENT).forEach(key => {
-                CURRENT[key] = null;
-            });
-            Object.keys(CURRENT_PRICE).forEach(key => {
-                CURRENT_PRICE[key] = 0;
-            });
         }
     });
 });
