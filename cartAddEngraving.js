@@ -6,7 +6,10 @@
  */
 
 Ecwid.OnAPILoaded.add(function() {
-    Ecwid.OnPageLoaded.add(function(page) {
+    // Store observers in an array
+    const observers = [];
+
+    Ecwid.OnPageLoaded.add(async function(page) {
       if (page.type === 'PRODUCT') {
           const productIds = [707439498, 707449474, 707449472, 707464855, 707464853];
   
@@ -89,6 +92,14 @@ Ecwid.OnAPILoaded.add(function() {
                 return;
               }
 
+              // Disconnect any existing price observers
+              observers.forEach(observer => {
+                  if (observer._priceObserver) {
+                      observer.disconnect();
+                      observers.splice(observers.indexOf(observer), 1);
+                  }
+              });
+
               const totalPrice = basePrice + 
                 CURRENT_PRICE[OPTION_NAMES.STRAP] + 
                 CURRENT_PRICE[OPTION_NAMES.GRIP_COLOR] + 
@@ -103,13 +114,29 @@ Ecwid.OnAPILoaded.add(function() {
                 totalPrice
               });
 
-              // Instead of creating a new element, directly update the text content
-              priceElement.textContent = `$${totalPrice.toFixed(2)}`;
-              
-              // If that doesn't work, try forcing a DOM update
-              requestAnimationFrame(() => {
-                  priceElement.textContent = `$${totalPrice.toFixed(2)}`;
+              // Create new price observer
+              const priceObserver = new MutationObserver((mutations) => {
+                  mutations.forEach((mutation) => {
+                      if (mutation.type === 'characterData' || mutation.type === 'childList') {
+                          const currentPrice = priceElement.textContent;
+                          const expectedPrice = `$${totalPrice.toFixed(2)}`;
+                          if (currentPrice !== expectedPrice) {
+                              console.log('Price mismatch, forcing update');
+                              priceElement.textContent = expectedPrice;
+                          }
+                      }
+                  });
               });
+              priceObserver._priceObserver = true; // Mark as price observer
+
+              priceObserver.observe(priceElement, {
+                  characterData: true,
+                  childList: true,
+                  subtree: true
+              });
+              
+              observers.push(priceObserver);
+              priceElement.textContent = `$${totalPrice.toFixed(2)}`;
             }
             catch (error) {
               console.error('Error updating price:', error);
@@ -342,29 +369,6 @@ Ecwid.OnAPILoaded.add(function() {
             return true;
           }
 
-          // Listen for add to cart button
-          function listenUpdateCart(target) {
-            console.log('Starting listenUpdateCart()');
-            const addButton = target.querySelector(".form-control__button");
-            if (addButton) {            
-              console.log('Add button found, setting up listener');
-              const clone = target.cloneNode(true);
-              target.parentNode.replaceChild(clone, target);
-              
-              clone.addEventListener('click', async (event) => {
-                console.log('Add to cart button clicked');
-                try {
-                  await handleAddToCart(event);
-                } catch (error) {
-                  console.error('Error handling cart update:', error);
-                }
-              });
-            }
-            else {
-              console.error('No button found');
-            }
-          }
-
           // Debounce function
           function debounce(func, wait) {
             let timeout;
@@ -558,6 +562,7 @@ Ecwid.OnAPILoaded.add(function() {
 
                   CURRENT[OPTION_NAMES.HIKING_QUANTITY] = hikingQuantityValue;
                   CURRENT_PRICE[OPTION_NAMES.HIKING_QUANTITY] = hikingQuantityPrice;
+                  updatePrice();
                 });
               } else {
                 console.log('Hiking quantity select element not found');
@@ -631,28 +636,40 @@ Ecwid.OnAPILoaded.add(function() {
             }
           }
 
-          // Update the mutation observer to be more specific
+          // Keep setupMutationObserver as its own function
           function setupMutationObserver(debouncedAttachCartListeners) {
             const observer = new MutationObserver((mutations) => {
                 try {
                     for (const mutation of mutations) {
                         if (mutation.type === 'childList') {
-                            // Check if the mutation involves our target buttons or strap options
-                            const hasRelevantChanges = Array.from(mutation.addedNodes).some(node => {
+                            // Check mutations separately for each type of change
+                            const hasCartButtonChanges = Array.from(mutation.addedNodes).some(node => {
                                 if (node.querySelector) {
                                     const addButton = node.querySelector(SELECTORS.ADD_TO_BAG);
                                     const moreButton = node.querySelector(SELECTORS.ADD_MORE);
-                                    const strapInputs = node.querySelector('input[name="Strap"]');
-                                    return addButton || moreButton || strapInputs;
+                                    return addButton || moreButton;
                                 }
                                 return false;
                             });
 
-                            if (hasRelevantChanges) {
-                                console.log('DOM change detected');
-                                // Use setTimeout to ensure DOM is fully updated
+                            const hasStrapChanges = Array.from(mutation.addedNodes).some(node => {
+                                if (node.querySelector) {
+                                    return node.querySelector('input[name="Strap"]');
+                                }
+                                return false;
+                            });
+
+                            // Call appropriate listeners based on what changed
+                            if (hasCartButtonChanges) {
+                                console.log('Cart button change detected');
                                 setTimeout(() => {
                                     debouncedAttachCartListeners();
+                                }, 0);
+                            }
+
+                            if (hasStrapChanges) {
+                                console.log('Strap input change detected');
+                                setTimeout(() => {
                                     attachStrapListeners();
                                 }, 0);
                             }
@@ -670,24 +687,87 @@ Ecwid.OnAPILoaded.add(function() {
                 attributeFilter: ['class']
             });
             
-            return observer;
+            observers.push(observer);
+          }
+
+          // Add this helper function
+          function waitForElements() {
+              return new Promise((resolve) => {
+                  // Single reset of all values at the start
+                  console.log('Resetting all values before checking elements');
+                  Object.keys(CURRENT).forEach(key => {
+                      CURRENT[key] = null;
+                  });
+                  Object.keys(CURRENT_PRICE).forEach(key => {
+                      CURRENT_PRICE[key] = 0;
+                  });
+
+                  const checkElements = () => {
+                      const elements = {
+                          engraving1: document.querySelector(SELECTORS.ENGRAVING_1),
+                          engraving2: document.querySelector(SELECTORS.ENGRAVING_2),
+                          gripColor: document.querySelector(SELECTORS.GRIP_COLOR),
+                          basketSize: document.querySelector(SELECTORS.BASKET_SIZE),
+                          basketColor: document.querySelector(SELECTORS.BASKET_COLOR),
+                          length: document.querySelector(SELECTORS.LENGTH)
+                      };
+
+                      console.log('Checking for elements:', elements);
+
+                      if (Object.values(elements).some(el => el !== null)) {
+                          console.log('Required elements found');
+                          resolve();
+                      } else {
+                          console.log('Elements not found, retrying...');
+                          setTimeout(checkElements, 100);
+                      }
+                  };
+
+                  checkElements();
+              });
           }
 
           // ------------------------- Initialization ------------------------- 
           try {
-            initializeCurrentValues();
-
-            // setup listeners
-            attachCartListeners();
-            attachProductListeners();
-            attachStrapListeners();
-            const debouncedAttachCartListeners = debounce(attachCartListeners, CART_UPDATE_DELAY);
-            setupMutationObserver(debouncedAttachCartListeners);
-
-
+              // Clean up any existing observers first
+              observers.forEach(observer => {
+                  if (observer && observer.disconnect) {
+                      observer.disconnect();
+                  }
+              });
+              observers.length = 0; // Clear the array
+              
+              await waitForElements();
+              
+              initializeCurrentValues();
+              
+              // Setup listeners
+              attachCartListeners();
+              attachProductListeners();
+              attachStrapListeners();
+              const debouncedAttachCartListeners = debounce(attachCartListeners, CART_UPDATE_DELAY);
+              setupMutationObserver(debouncedAttachCartListeners);
+              
           } catch (error) {
-            console.error('Error during initialization:', error);
+              console.error('Error during initialization:', error);
           }
+        } else {
+            // Cleanup when leaving product page
+            console.log('Cleaning up observers and listeners');
+            observers.forEach(observer => {
+                if (observer && observer.disconnect) {
+                    observer.disconnect();
+                }
+            });
+            observers.length = 0; // Clear the array
+            
+            // Reset state
+            Object.keys(CURRENT).forEach(key => {
+                CURRENT[key] = null;
+            });
+            Object.keys(CURRENT_PRICE).forEach(key => {
+                CURRENT_PRICE[key] = 0;
+            });
         }
     });
-  });
+});
