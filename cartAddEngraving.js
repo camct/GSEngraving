@@ -515,43 +515,45 @@ Ecwid.OnAPILoaded.add(function() {
                 });
             }
 
-            // Length listener
-            const lengthInput = document.querySelector(SELECTORS.LENGTH);
-            console.log('Found length input:', !!lengthInput);
+            // // Length listener
+            // const lengthInput = document.querySelector(SELECTORS.LENGTH);
+            // console.log('Found length input:', !!lengthInput);
             
-            if (lengthInput) {
-              lengthInput.addEventListener('input', () => {
-                let lengthInputValue = lengthInput.value;
-                if (page.productId === 707464853 && lengthInputValue >= 42) {
-                  lengthInputValue = 42;
-                  lengthInput.value = 42;
-                }
-                CURRENT[OPTION_NAMES.LENGTH] = lengthInputValue;
-                console.log('Length input changed:', lengthInputValue);
-              });
-            }
+            // if (lengthInput) {
+            //   lengthInput.addEventListener('input', () => {
+            //     let lengthInputValue = lengthInput.value;
+            //     if (page.productId === 707464853 && lengthInputValue >= 42) {
+            //       lengthInputValue = 42;
+            //       lengthInput.value = 42;
+            //     }
+            //     CURRENT[OPTION_NAMES.LENGTH] = lengthInputValue;
+            //     console.log('Length input changed:', lengthInputValue);
+            //   });
+            // }
 
             // Hiking quantity listener
             if (page.productId === 707464855) {
               console.log('Processing hiking quantity for product 707464855');
-              const hikingQuantitySelect = document.querySelector(SELECTORS.HIKING_QUANTITY);
-              console.log('Hiking quantity select element:', hikingQuantitySelect);
+              const hikingQuantity = document.querySelector('.details-product-option--Quantity');
+              console.log('Hiking quantity element:', hikingQuantity);
               
-              if (hikingQuantitySelect) {
-                hikingQuantitySelect.addEventListener('change', () => {
+              if (hikingQuantity) {
+                hikingQuantity.addEventListener('change', () => {
+                  const hikingQuantitySelect = hikingQuantity.querySelector(SELECTORS.HIKING_QUANTITY);
                   const hikingQuantityValue = hikingQuantitySelect.value;
-                  const hikingQuantityPrice = hikingQuantityValue ? SINGLE_HIKING_PRICE : 0;
+                  const hikingQuantityPrice = (hikingQuantityValue==='Single Hiking Stick') ? SINGLE_HIKING_PRICE : 0;
                   console.log('Hiking quantity calculations:', {
                     value: hikingQuantityValue,
                     price: hikingQuantityPrice,
                   });
 
+                  const engravingDivHide = document.querySelector('.details-product-option--Engraving---Ski-Pole-2');
                   if (hikingQuantityPrice === SINGLE_HIKING_PRICE) {
                     console.log('Single hiking pole selected, hiding engraving 2');
-                    document.querySelector(SELECTORS.ENGRAVING_2).style.display = 'none';
+                    document.querySelector(engravingDivHide).style.display = 'none';
                   } else {
                     console.log('Pair of poles selected, showing engraving 2');
-                    document.querySelector(SELECTORS.ENGRAVING_2).style.display = 'block';
+                    document.querySelector(engravingDivHide).style.display = 'block';
                   }
 
                   console.log('Hiking quantity changed:', {
@@ -627,9 +629,9 @@ Ecwid.OnAPILoaded.add(function() {
             const addToBagDiv = document.querySelector(SELECTORS.ADD_TO_BAG);
             const addMoreDiv = document.querySelector(SELECTORS.ADD_MORE);
             
-            if (addToBagDiv || addMoreDiv) {
-                const targetDiv = addToBagDiv || addMoreDiv;
-                
+            const targetDivs = [addToBagDiv, addMoreDiv].filter(div => div); // Get all available buttons
+            
+            targetDivs.forEach(targetDiv => {
                 // Remove existing button and its listeners
                 const oldButton = targetDiv.querySelector(".form-control__button");
                 if (oldButton) {
@@ -650,34 +652,64 @@ Ecwid.OnAPILoaded.add(function() {
                         }
                     }, true); // Use capture phase
                 }
-            }
+            });
           }
 
           // Keep setupMutationObserver as its own function
           function setupMutationObserver(debouncedAttachCartListeners) {
             const observer = new MutationObserver((mutations) => {
                 try {
+                    let shouldAttachListeners = false;
+                    
                     for (const mutation of mutations) {
                         if (mutation.type === 'childList') {
-                            // Check mutations separately for each type of change
-                            const hasCartButtonChanges = Array.from(mutation.addedNodes).some(node => {
-                                // First check if the added node is one of our target buttons
-                                if (node.matches) {
-                                    return node.matches(SELECTORS.ADD_TO_BAG) || node.matches(SELECTORS.ADD_MORE);
+                            // Check for direct button additions
+                            const hasDirectButtonChanges = Array.from(mutation.addedNodes).some(node => {
+                                return node.matches && (
+                                    node.matches(SELECTORS.ADD_TO_BAG) || 
+                                    node.matches(SELECTORS.ADD_MORE)
+                                );
+                            });
+
+                            // Check for parent container changes
+                            const hasParentChanges = Array.from(mutation.addedNodes).some(node => {
+                                if (node.querySelector) {
+                                    return node.querySelector(SELECTORS.ADD_TO_BAG) || 
+                                           node.querySelector(SELECTORS.ADD_MORE);
                                 }
-                                
-                                // Then check if any of the parent nodes is the controls container
-                                let parent = node.parentElement;
-                                while (parent) {
-                                    if (parent.matches && parent.matches('.details-product-purchase__controls')) {
-                                        return true;
-                                    }
-                                    parent = parent.parentElement;
-                                }
-                                
                                 return false;
                             });
 
+                            // Check for button state changes
+                            const targetNode = mutation.target;
+                            const hasButtonStateChange = targetNode.matches && (
+                                targetNode.matches(SELECTORS.ADD_TO_BAG) || 
+                                targetNode.matches(SELECTORS.ADD_MORE) ||
+                                targetNode.matches('.details-product-purchase__controls')
+                            );
+
+                            // Check for cart button container changes
+                            const hasControlsChange = Array.from(mutation.addedNodes).some(node => {
+                                return node.matches && node.matches('.details-product-purchase__controls');
+                            }) || (
+                                targetNode.matches && 
+                                targetNode.matches('.details-product-purchase__controls')
+                            );
+
+                            if (hasDirectButtonChanges || hasParentChanges || hasButtonStateChange || hasControlsChange) {
+                                console.log('Cart button change detected:', {
+                                    directButtonChange: hasDirectButtonChanges,
+                                    parentChange: hasParentChanges,
+                                    buttonStateChange: hasButtonStateChange,
+                                    controlsChange: hasControlsChange,
+                                    mutationType: mutation.type,
+                                    targetNode: mutation.target,
+                                    addedNodes: Array.from(mutation.addedNodes).map(node => node.nodeName)
+                                });
+                                shouldAttachListeners = true;
+                            }
+
+                            // Handle strap changes separately
                             const hasStrapChanges = Array.from(mutation.addedNodes).some(node => {
                                 if (node.querySelector) {
                                     return node.querySelector('input[name="Strap"]');
@@ -685,21 +717,15 @@ Ecwid.OnAPILoaded.add(function() {
                                 return false;
                             });
 
-                            // Call appropriate listeners based on what changed
-                            if (hasCartButtonChanges) {
-                                console.log('Cart button change detected');
-                                setTimeout(() => {
-                                    debouncedAttachCartListeners();
-                                }, 0);
-                            }
-
                             if (hasStrapChanges) {
-                                console.log('Strap input change detected');
-                                setTimeout(() => {
-                                    attachStrapListeners();
-                                }, 0);
+                                setTimeout(attachStrapListeners, 0);
                             }
                         }
+                    }
+
+                    if (shouldAttachListeners) {
+                        console.log('Cart button change detected');
+                        setTimeout(debouncedAttachCartListeners, 0);
                     }
                 } catch (error) {
                     console.error('Error in MutationObserver callback:', error);
@@ -710,7 +736,7 @@ Ecwid.OnAPILoaded.add(function() {
                 childList: true,
                 subtree: true,
                 attributes: true,
-                attributeFilter: ['class']
+                attributeFilter: ['class', 'style']
             });
             
             observers.push(observer);
@@ -718,7 +744,7 @@ Ecwid.OnAPILoaded.add(function() {
 
           // Add this helper function
           function waitForElements() {
-              return new Promise((resolve) => {
+              return new Promise((resolve, reject) => {
                   // Single reset of all values at the start
                   console.log('Resetting all values before checking elements');
                   Object.keys(CURRENT).forEach(key => {
@@ -728,7 +754,17 @@ Ecwid.OnAPILoaded.add(function() {
                       CURRENT_PRICE[key] = 0;
                   });
 
+                  let retryCount = 0;
+                  const maxRetries = 50; // 5 seconds maximum wait
+                  let checkTimeout;  // Added timeout reference
+
                   const checkElements = () => {
+                      if (retryCount >= maxRetries) {
+                          clearTimeout(checkTimeout);  // Clear timeout before rejecting
+                          reject(new Error('Timeout waiting for elements'));
+                          return;
+                      }
+                      retryCount++;
                       const elements = {
                           engraving1: document.querySelector(SELECTORS.ENGRAVING_1),
                           engraving2: document.querySelector(SELECTORS.ENGRAVING_2),
@@ -738,14 +774,15 @@ Ecwid.OnAPILoaded.add(function() {
                           length: document.querySelector(SELECTORS.LENGTH)
                       };
 
-                      console.log('Checking for elements:', elements);
+                      console.log(`Checking for elements (attempt ${retryCount}/${maxRetries}):`, elements);
 
                       if (Object.values(elements).some(el => el !== null)) {
-                          console.log('Required elements found');
-                          resolve();
+                          clearTimeout(checkTimeout);  // Clear timeout before resolving
+                          console.log('Some elements found');
+                          resolve(elements);  // Pass elements to resolve
                       } else {
-                          console.log('Elements not found, retrying...');
-                          setTimeout(checkElements, 100);
+                          console.log('No elements found, retrying...');
+                          checkTimeout = setTimeout(checkElements, 100);
                       }
                   };
 
