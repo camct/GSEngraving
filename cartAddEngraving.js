@@ -663,50 +663,24 @@ Ecwid.OnAPILoaded.add(function() {
                     
                     for (const mutation of mutations) {
                         if (mutation.type === 'childList') {
-                            // Check for direct button additions
-                            const hasDirectButtonChanges = Array.from(mutation.addedNodes).some(node => {
-                                return node.matches && (
-                                    node.matches(SELECTORS.ADD_TO_BAG) || 
-                                    node.matches(SELECTORS.ADD_MORE)
-                                );
-                            });
-
-                            // Check for parent container changes
-                            const hasParentChanges = Array.from(mutation.addedNodes).some(node => {
-                                if (node.querySelector) {
-                                    return node.querySelector(SELECTORS.ADD_TO_BAG) || 
-                                           node.querySelector(SELECTORS.ADD_MORE);
-                                }
-                                return false;
-                            });
-
-                            // Check for button state changes
                             const targetNode = mutation.target;
-                            const hasButtonStateChange = targetNode.matches && (
-                                targetNode.matches(SELECTORS.ADD_TO_BAG) || 
-                                targetNode.matches(SELECTORS.ADD_MORE) ||
-                                targetNode.matches('.details-product-purchase__controls')
-                            );
-
-                            // Check for cart button container changes
-                            const hasControlsChange = Array.from(mutation.addedNodes).some(node => {
-                                return node.matches && node.matches('.details-product-purchase__controls');
-                            }) || (
+                            
+                            // Only check for actual controls container changes
+                            const hasControlsChange = (
                                 targetNode.matches && 
                                 targetNode.matches('.details-product-purchase__controls')
+                            ) || Array.from(mutation.addedNodes).some(node => 
+                                node.matches && node.matches('.details-product-purchase__controls')
                             );
 
-                            if (hasDirectButtonChanges || hasParentChanges || hasButtonStateChange || hasControlsChange) {
-                                console.log('Cart button change detected:', {
-                                    directButtonChange: hasDirectButtonChanges,
-                                    parentChange: hasParentChanges,
-                                    buttonStateChange: hasButtonStateChange,
-                                    controlsChange: hasControlsChange,
-                                    mutationType: mutation.type,
-                                    targetNode: mutation.target,
+                            if (hasControlsChange) {
+                                console.log('Controls container change detected:', {
+                                    timestamp: new Date().toISOString(),
+                                    targetNodeClass: targetNode.className,
                                     addedNodes: Array.from(mutation.addedNodes).map(node => node.nodeName)
                                 });
                                 shouldAttachListeners = true;
+                                break;
                             }
 
                             // Handle strap changes separately
@@ -724,8 +698,7 @@ Ecwid.OnAPILoaded.add(function() {
                     }
 
                     if (shouldAttachListeners) {
-                        console.log('Cart button change detected');
-                        setTimeout(debouncedAttachCartListeners, 0);
+                        debouncedAttachCartListeners();
                     }
                 } catch (error) {
                     console.error('Error in MutationObserver callback:', error);
@@ -735,8 +708,7 @@ Ecwid.OnAPILoaded.add(function() {
             observer.observe(document.body, {
                 childList: true,
                 subtree: true,
-                attributes: true,
-                attributeFilter: ['class', 'style']
+                attributes: false
             });
             
             observers.push(observer);
