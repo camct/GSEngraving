@@ -515,21 +515,21 @@ Ecwid.OnAPILoaded.add(function() {
                 });
             }
 
-            // // Length listener
-            // const lengthInput = document.querySelector(SELECTORS.LENGTH);
-            // console.log('Found length input:', !!lengthInput);
+            // Length listener
+            const lengthInput = document.querySelector(SELECTORS.LENGTH);
+            console.log('Found length input:', !!lengthInput);
             
-            // if (lengthInput) {
-            //   lengthInput.addEventListener('input', () => {
-            //     let lengthInputValue = lengthInput.value;
-            //     if (page.productId === 707464853 && lengthInputValue >= 42) {
-            //       lengthInputValue = 42;
-            //       lengthInput.value = 42;
-            //     }
-            //     CURRENT[OPTION_NAMES.LENGTH] = lengthInputValue;
-            //     console.log('Length input changed:', lengthInputValue);
-            //   });
-            // }
+            if (lengthInput) {
+              lengthInput.addEventListener('input', () => {
+                let lengthInputValue = lengthInput.value;
+                // if (page.productId === 707464853 && lengthInputValue >= 42) {
+                //   lengthInputValue = 42;
+                //   lengthInput.value = 42;
+                // }
+                CURRENT[OPTION_NAMES.LENGTH] = lengthInputValue;
+                console.log('Length input changed:', lengthInputValue);
+              });
+            }
 
             // Hiking quantity listener
             if (page.productId === 707464855) {
