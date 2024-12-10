@@ -550,10 +550,10 @@ Ecwid.OnAPILoaded.add(function() {
                   const engravingDivHide = document.querySelector('.details-product-option--Engraving---Ski-Pole-2');
                   if (hikingQuantityPrice === SINGLE_HIKING_PRICE) {
                     console.log('Single hiking pole selected, hiding engraving 2');
-                    document.querySelector(engravingDivHide).style.display = 'none';
+                    engravingDivHide.style.display = 'none';
                   } else {
                     console.log('Pair of poles selected, showing engraving 2');
-                    document.querySelector(engravingDivHide).style.display = 'block';
+                    engravingDivHide.style.display = 'block';
                   }
 
                   console.log('Hiking quantity changed:', {
