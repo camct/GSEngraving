@@ -684,12 +684,51 @@ Ecwid.OnAPILoaded.add(function() {
             const observer = new MutationObserver((mutations) => {
                 try {
                     let shouldAttachListeners = false;
+                    let shouldAttachStrapListeners = false;
                     
                     for (const mutation of mutations) {
                         if (mutation.type === 'childList') {
                             const targetNode = mutation.target;
                             
-                            // Only check for actual controls container changes
+                            // Check for strap option appearing
+                            const hasStrapChanges = (
+                                // Direct strap container appears
+                                (targetNode.matches && targetNode.matches('.details-product-option--Strap')) ||
+                                // Parent container gets straps
+                                (targetNode.matches && targetNode.matches('.details-product-options')) ||
+                                // Check added nodes for strap content
+                                Array.from(mutation.addedNodes).some(node => {
+                                    if (node.matches) {
+                                        return node.matches('.details-product-option--Strap') ||
+                                               node.matches('.details-product-options');
+                                    }
+                                    if (node.querySelector) {
+                                        const strapOption = node.querySelector('.details-product-option--Strap');
+                                        if (strapOption) {
+                                            // Update CURRENT and CURRENT_PRICE when strap option appears
+                                            const selectedStrap = strapOption.querySelector('input[name="Strap"]:checked');
+                                            if (selectedStrap) {
+                                                console.log('Found strap option:', selectedStrap.value);
+                                                CURRENT[OPTION_NAMES.STRAP] = selectedStrap.value;
+                                                CURRENT_PRICE[OPTION_NAMES.STRAP] = STRAP_PRICES[selectedStrap.value] || 0;
+                                                console.log('Updated strap state:', {
+                                                    value: CURRENT[OPTION_NAMES.STRAP],
+                                                    price: CURRENT_PRICE[OPTION_NAMES.STRAP]
+                                                });
+                                            }
+                                        }
+                                        return !!strapOption;
+                                    }
+                                    return false;
+                                })
+                            );
+
+                            if (hasStrapChanges) {
+                                console.log('Strap option appeared');
+                                shouldAttachStrapListeners = true;
+                            }
+
+                            // Existing cart controls check
                             const hasControlsChange = (
                                 targetNode.matches && 
                                 targetNode.matches('.details-product-purchase__controls')
@@ -698,30 +737,22 @@ Ecwid.OnAPILoaded.add(function() {
                             );
 
                             if (hasControlsChange) {
-                                console.log('Controls container change detected:', {
-                                    timestamp: new Date().toISOString(),
-                                    targetNodeClass: targetNode.className,
-                                    addedNodes: Array.from(mutation.addedNodes).map(node => node.nodeName)
-                                });
+                                console.log('Cart controls change detected');
                                 shouldAttachListeners = true;
-                                break;
-                            }
-
-                            // Handle strap changes separately
-                            const hasStrapChanges = Array.from(mutation.addedNodes).some(node => {
-                                if (node.querySelector) {
-                                    return node.querySelector('input[name="Strap"]');
-                                }
-                                return false;
-                            });
-
-                            if (hasStrapChanges) {
-                                setTimeout(attachStrapListeners, 0);
                             }
                         }
                     }
 
+                    // Handle both types of changes independently
+                    if (shouldAttachStrapListeners) {
+                        console.log('Reattaching strap listeners');
+                        setTimeout(() => {
+                            attachStrapListeners();
+                        }, 0);
+                    }
+
                     if (shouldAttachListeners) {
+                        console.log('Reattaching cart listeners');
                         debouncedAttachCartListeners();
                     }
                 } catch (error) {
