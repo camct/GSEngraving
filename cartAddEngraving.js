@@ -387,21 +387,20 @@ Ecwid.OnAPILoaded.add(function() {
 
           // Modified listener functions
           function attachStrapListeners() {
-            console.log('Starting attachStrapListeners()');
-            const strapInputs = document.querySelectorAll('input[name="Strap"]');
-            console.log('Found strap inputs:', strapInputs.length);
+            console.log('Attaching strap listeners');
+            const strapContainer = document.querySelector('.details-product-option--Strap');
             
-            strapInputs.forEach(input => {
-              const clone = input.cloneNode(true);
-              input.parentNode.replaceChild(clone, input);
-              clone.addEventListener('change', () => {
-                console.log('Strap input changed:', clone.value);
-                const strapPrice = STRAP_PRICES[clone.value] ?? STRAP_PRICES['mtnStrap'];
-                console.log('New strap price:', strapPrice);
-                CURRENT[OPTION_NAMES.STRAP] = clone.value;
-                CURRENT_PRICE[OPTION_NAMES.STRAP] = strapPrice;
+            if (!strapContainer) {
+                console.log('Strap container not found');
+                return;
+            }
+
+            // Listen for our custom event instead of directly to radio buttons
+            strapContainer.addEventListener('strapOptionChanged', (e) => {
+                console.log('Strap option changed event received:', e.detail);
+                CURRENT[OPTION_NAMES.STRAP] = e.detail.value;
+                CURRENT_PRICE[OPTION_NAMES.STRAP] = e.detail.price;
                 updatePrice();
-              });
             });
           }
 
