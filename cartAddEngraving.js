@@ -3,7 +3,8 @@
  * @author Cabot McTavish
  * 
  * This file is grouped by sections: Constants, Functions, Initialization.  In the need for edits, only the constants section should be changed.  The functions section should not be edited.  The initialization section should be used to setup the listeners.
- */
+ * *** IF you get rid of the strap condense, need to update strap events to click instead of self made event *** 
+*/
 
 Ecwid.OnAPILoaded.add(function() {
     // Store observers in an array
@@ -160,6 +161,8 @@ Ecwid.OnAPILoaded.add(function() {
                     [OPTION_NAMES.ENGRAVING_2]: CURRENT[OPTION_NAMES.ENGRAVING_2] || ''
                 };
 
+                const quantity = document.querySelector(SELECTORS.QUANTITY);
+
                 // Add hiking quantity to options if it's the hiking pole product
                 if (page.productId === 707464855) {
                     console.log('Adding hiking quantity to product options:', CURRENT[OPTION_NAMES.HIKING_QUANTITY]);
@@ -168,7 +171,7 @@ Ecwid.OnAPILoaded.add(function() {
 
                 const product = {
                     id: page.productId,
-                    quantity: 1,
+                    quantity: quantity ? quantity.value : 1,
                     options: options
                 };
 
@@ -537,60 +540,61 @@ Ecwid.OnAPILoaded.add(function() {
             if (page.productId === 707464855) {
                 console.log('Processing hiking quantity for product 707464855');
                 const hikingQuantity = document.querySelector('.details-product-option--Quantity');
-                console.log('Hiking quantity element:', hikingQuantity);
                 
                 if (hikingQuantity) {
                     hikingQuantity.addEventListener('change', (event) => {
-                        // Debug the event
-                        console.log('Hiking quantity change event:', {
-                            event: event,
-                            target: event.target,
-                            targetValue: event.target.value
-                        });
+                        try {
+                            // Get the selected radio button and validate
+                            const selectedRadio = hikingQuantity.querySelector(SELECTORS.HIKING_QUANTITY);
+                            const hikingQuantityValue = selectedRadio?.value || 'Trekking Pole Pair';
+                            const isSingleStick = hikingQuantityValue === 'Single Hiking Stick';
+                            
+                            // Calculate price adjustment
+                            const hikingQuantityPrice = isSingleStick ? SINGLE_HIKING_PRICE : 0;
+                            
+                            // Get and validate engraving inputs
+                            const engravingInput1 = document.querySelector(SELECTORS.ENGRAVING_1);
+                            const engravingInput2 = document.querySelector(SELECTORS.ENGRAVING_2);
+                            const engravingText1 = engravingInput1?.value || '';
+                            const engravingText2 = isSingleStick ? '' : (engravingInput2?.value || '');
 
-                        // Get the selected radio button
-                        const selectedRadio = hikingQuantity.querySelector(SELECTORS.HIKING_QUANTITY);
-                        console.log('Selected radio button:', {
-                            element: selectedRadio,
-                            value: selectedRadio?.value,
-                            checked: selectedRadio?.checked
-                        });
+                            // Calculate new character count
+                            const charCount = engravingText1.length + engravingText2.length;
+                            
+                            // Debug logging
+                            console.log('Hiking quantity update:', {
+                                value: hikingQuantityValue,
+                                price: hikingQuantityPrice,
+                                charCount,
+                                engravingPrice: engraveInd[charCount],
+                                text1Length: engravingText1.length,
+                                text2Length: engravingText2.length
+                            });
 
-                        const hikingQuantityValue = selectedRadio ? selectedRadio.value : 'Trekking Pole Pair';
-                        const hikingQuantityPrice = (hikingQuantityValue === 'Single Hiking Stick') ? SINGLE_HIKING_PRICE : 0;
-                        
-                        console.log('Hiking quantity calculations:', {
-                            value: hikingQuantityValue,
-                            price: hikingQuantityPrice
-                        });
-
-                        // Log previous values before update
-                        console.log('Previous values:', {
-                            currentValue: CURRENT[OPTION_NAMES.HIKING_QUANTITY],
-                            currentPrice: CURRENT_PRICE[OPTION_NAMES.HIKING_QUANTITY]
-                        });
-
-                        CURRENT[OPTION_NAMES.HIKING_QUANTITY] = hikingQuantityValue;
-                        CURRENT_PRICE[OPTION_NAMES.HIKING_QUANTITY] = hikingQuantityPrice;
-                        
-                        // Log after update
-                        console.log('Hiking quantity changed:', {
-                            newValue: CURRENT[OPTION_NAMES.HIKING_QUANTITY],
-                            previousValue: hikingQuantityValue,
-                            newPrice: CURRENT_PRICE[OPTION_NAMES.HIKING_QUANTITY]
-                        });
-
-                        // Handle engraving div visibility
-                        const engravingDivHide = document.querySelector('.details-product-option--Engraving---Ski-Pole-2');
-                        if (engravingDivHide) {
-                            console.log('Toggling engraving div visibility:', hikingQuantityValue === 'Single Hiking Stick' ? 'hiding' : 'showing');
-                            engravingDivHide.style.display = hikingQuantityValue === 'Single Hiking Stick' ? 'none' : 'block';
+                            // Update state
+                            CURRENT[OPTION_NAMES.HIKING_QUANTITY] = hikingQuantityValue;
+                            CURRENT_PRICE[OPTION_NAMES.HIKING_QUANTITY] = hikingQuantityPrice;
+                            CURRENT_PRICE[OPTION_NAMES.ENGRAVING] = engraveInd[charCount];
+                            CURRENT[OPTION_NAMES.ENGRAVING] = customEngraving[charCount];
+                            
+                            // Handle second engraving field visibility
+                            const engravingDiv2 = document.querySelector('.details-product-option--Engraving---Ski-Pole-2');
+                            if (engravingDiv2) {
+                                engravingDiv2.style.display = isSingleStick ? 'none' : 'block';
+                                
+                                if (isSingleStick && engravingInput2) {
+                                    engravingInput2.value = '';
+                                    CURRENT[OPTION_NAMES.ENGRAVING_2] = '';
+                                }
+                            }
+                            
+                            updatePrice();
+                        } catch (error) {
+                            console.error('Error handling hiking quantity change:', error);
                         }
-                        
-                        updatePrice();
                     });
                 } else {
-                    console.log('Hiking quantity select element not found');
+                    console.warn('Hiking quantity element not found for product 707464855');
                 }
             }
           }
