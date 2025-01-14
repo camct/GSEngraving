@@ -161,7 +161,18 @@ Ecwid.OnAPILoaded.add(function() {
                     [OPTION_NAMES.ENGRAVING_2]: CURRENT[OPTION_NAMES.ENGRAVING_2] || ''
                 };
 
-                const quantity = document.querySelector(SELECTORS.QUANTITY);
+                // Get quantity element and parse its value
+                const quantityElement = document.querySelector(SELECTORS.QUANTITY);
+                let quantity = 1; // Default to 1
+
+                if (quantityElement && quantityElement.value) {
+                    const parsedQuantity = parseInt(quantityElement.value, 10);
+                    if (!isNaN(parsedQuantity) && parsedQuantity > 0) {
+                        quantity = parsedQuantity;
+                    }
+                }
+
+                console.log('Quantity value:', quantity);
 
                 // Add hiking quantity to options if it's the hiking pole product
                 if (page.productId === 707464855) {
@@ -171,7 +182,7 @@ Ecwid.OnAPILoaded.add(function() {
 
                 const product = {
                     id: page.productId,
-                    quantity: quantity ? quantity.value : 1,
+                    quantity: quantity,
                     options: options
                 };
 
