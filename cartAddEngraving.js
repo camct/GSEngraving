@@ -93,14 +93,13 @@ Ecwid.OnAPILoaded.add(function() {
                 return;
               }
 
-              // Disconnect any existing price observers
-              observers.forEach(observer => {
-                  if (observer._priceObserver) {
-                      observer.disconnect();
-                      observers.splice(observers.indexOf(observer), 1);
-                  }
-              });
+              // Temporarily disconnect price observers
+              const priceObserver = observers.find(obs => obs._priceObserver);
+              if (priceObserver) {
+                  priceObserver._updating = true;
+              }
 
+              // Update price
               const totalPrice = basePrice + 
                 CURRENT_PRICE[OPTION_NAMES.STRAP] + 
                 CURRENT_PRICE[OPTION_NAMES.GRIP_COLOR] + 
@@ -115,29 +114,15 @@ Ecwid.OnAPILoaded.add(function() {
                 totalPrice
               });
 
-              // Create new price observer
-              const priceObserver = new MutationObserver((mutations) => {
-                  mutations.forEach((mutation) => {
-                      if (mutation.type === 'characterData' || mutation.type === 'childList') {
-                          const currentPrice = priceElement.textContent;
-                          const expectedPrice = `$${totalPrice.toFixed(2)}`;
-                          if (currentPrice !== expectedPrice) {
-                              console.log('Price mismatch, forcing update');
-                              priceElement.textContent = expectedPrice;
-                          }
-                      }
-                  });
-              });
-              priceObserver._priceObserver = true; // Mark as price observer
-
-              priceObserver.observe(priceElement, {
-                  characterData: true,
-                  childList: true,
-                  subtree: true
-              });
-              
-              observers.push(priceObserver);
+              // Update price immediately
               priceElement.textContent = `$${totalPrice.toFixed(2)}`;
+
+              // Re-enable price observer
+              if (priceObserver) {
+                  setTimeout(() => {
+                      priceObserver._updating = false;
+                  }, 0);
+              }
             }
             catch (error) {
               console.error('Error updating price:', error);
@@ -424,22 +409,35 @@ Ecwid.OnAPILoaded.add(function() {
             // Engraving inputs
             const engravingInput1 = document.querySelector(SELECTORS.ENGRAVING_1);
             const engravingInput2 = document.querySelector(SELECTORS.ENGRAVING_2);
-            
             console.log('Found engraving inputs:', {
                 input1: !!engravingInput1,
                 input2: !!engravingInput2
             });
-            
+
+            let newEngravingInput1, newEngravingInput2;
+
+            // Engraving 1
             if (engravingInput1) {
-                engravingInput1.addEventListener('input', () => {
-                    console.log('Engraving 1 input changed:', engravingInput1.value);
-                    const engravingText2 = engravingInput2 ? engravingInput2.value : '';
-                    const engravingText1 = engravingInput1.value;
+              newEngravingInput1 = engravingInput1.cloneNode(true);
+              engravingInput1.parentNode.replaceChild(newEngravingInput1, engravingInput1);
+            }
+          
+            // Engraving 2
+            if (engravingInput2) {
+                newEngravingInput2 = engravingInput2.cloneNode(true);
+                engravingInput2.parentNode.replaceChild(newEngravingInput2, engravingInput2);
+            }
+            
+            // Clean up and reattach engraving 1 listener
+            if (newEngravingInput1) {                
+                newEngravingInput1.addEventListener('input', () => {
+                    console.log('Engraving 1 input changed:', newEngravingInput1.value);
+                    const engravingText2 = newEngravingInput2 ? newEngravingInput2.value : '';
+                    const engravingText1 = newEngravingInput1.value;
                     const charCount = engravingText1.length + engravingText2.length;
                     
-                    // If over 40 characters, revert to previous value
                     if (charCount > 40) {
-                        engravingInput1.value = engravingInput1.value.slice(0, -1);
+                        newEngravingInput1.value = newEngravingInput1.value.slice(0, -1);
                         return;
                     }
                     
@@ -456,25 +454,18 @@ Ecwid.OnAPILoaded.add(function() {
                 });
             }
             
-            if (engravingInput2) {
-                engravingInput2.addEventListener('input', () => {
-                    console.log('Engraving 2 input changed:', engravingInput2.value);
-                    const engravingText1 = engravingInput1 ? engravingInput1.value : '';
-                    const engravingText2 = engravingInput2.value;
+            // Clean up and reattach engraving 2 listener
+            if (newEngravingInput2) {                
+                newEngravingInput2.addEventListener('input', () => {
+                    const engravingText1 = newEngravingInput1 ? newEngravingInput1.value : '';
+                    const engravingText2 = newEngravingInput2.value;
                     const charCount = engravingText1.length + engravingText2.length;
                     
-                    // If over 40 characters, revert to previous value
                     if (charCount > 40) {
-                        engravingInput2.value = engravingInput2.value.slice(0, -1);
+                        newEngravingInput2.value = newEngravingInput2.value.slice(0, -1);
                         return;
                     }
                     
-                    console.log('Engraving 2 calculation:', {
-                        text1: engravingText1,
-                        text2: engravingText2,
-                        totalChars: charCount,
-                        newPrice: engraveInd[charCount]
-                    });
                     CURRENT_PRICE[OPTION_NAMES.ENGRAVING] = engraveInd[charCount];
                     CURRENT[OPTION_NAMES.ENGRAVING_2] = engravingText2;
                     CURRENT[OPTION_NAMES.ENGRAVING] = customEngraving[charCount];
@@ -487,14 +478,19 @@ Ecwid.OnAPILoaded.add(function() {
             console.log('Found grip color select:', !!gripColorSelect);
             
             if (gripColorSelect) {
-                gripColorSelect.addEventListener('change', () => {
-                    const gripColorValue = gripColorSelect.value;
+                const newGripSelect = gripColorSelect.cloneNode(true);
+                gripColorSelect.parentNode.replaceChild(newGripSelect, gripColorSelect);
+                
+                newGripSelect.addEventListener('change', () => {
+                    const gripColorValue = newGripSelect.value;
                     const gripPrice = (gripColorValue === 'Cork') ? CORK_PRICE : 0;
+                    
                     console.log('Grip color changed:', {
                         newValue: gripColorValue,
                         isCork: gripColorValue === 'Cork',
                         newPrice: gripPrice
                     });
+                    
                     CURRENT_PRICE[OPTION_NAMES.GRIP_COLOR] = gripPrice;
                     CURRENT[OPTION_NAMES.GRIP_COLOR] = gripColorValue;
                     updatePrice();
@@ -506,13 +502,15 @@ Ecwid.OnAPILoaded.add(function() {
             console.log('Found basket size select:', !!basketSizeSelect);
             
             if (basketSizeSelect) {
-                basketSizeSelect.addEventListener('change', () => {
-                    const basketSizeValue = basketSizeSelect.value;
+                const newBasketSizeSelect = basketSizeSelect.cloneNode(true);
+                basketSizeSelect.parentNode.replaceChild(newBasketSizeSelect, basketSizeSelect);
+                
+                newBasketSizeSelect.addEventListener('change', () => {
                     console.log('Basket size changed:', {
-                        newValue: basketSizeValue,
+                        newValue: newBasketSizeSelect.value,
                         previousValue: CURRENT[OPTION_NAMES.BASKET_SIZE]
                     });
-                    CURRENT[OPTION_NAMES.BASKET_SIZE] = basketSizeValue;
+                    CURRENT[OPTION_NAMES.BASKET_SIZE] = newBasketSizeSelect.value;
                 });
             }
 
@@ -521,30 +519,30 @@ Ecwid.OnAPILoaded.add(function() {
             console.log('Found basket color select:', !!basketColorSelect);
             
             if (basketColorSelect) {
-                basketColorSelect.addEventListener('change', () => {
-                    const basketColorValue = basketColorSelect.value;
+                const newBasketColorSelect = basketColorSelect.cloneNode(true);
+                basketColorSelect.parentNode.replaceChild(newBasketColorSelect, basketColorSelect);
+                
+                newBasketColorSelect.addEventListener('change', () => {
                     console.log('Basket color changed:', {
-                        newValue: basketColorValue,
+                        newValue: newBasketColorSelect.value,
                         previousValue: CURRENT[OPTION_NAMES.BASKET_COLOR]
                     });
-                    CURRENT[OPTION_NAMES.BASKET_COLOR] = basketColorValue;
+                    CURRENT[OPTION_NAMES.BASKET_COLOR] = newBasketColorSelect.value;
                 });
             }
 
-            // Length listener
+            // Length input listener
             const lengthInput = document.querySelector(SELECTORS.LENGTH);
             console.log('Found length input:', !!lengthInput);
             
             if (lengthInput) {
-              lengthInput.addEventListener('input', () => {
-                let lengthInputValue = lengthInput.value;
-                // if (page.productId === 707464853 && lengthInputValue >= 42) {
-                //   lengthInputValue = 42;
-                //   lengthInput.value = 42;
-                // }
-                CURRENT[OPTION_NAMES.LENGTH] = lengthInputValue;
-                console.log('Length input changed:', lengthInputValue);
-              });
+                const newLengthInput = lengthInput.cloneNode(true);
+                lengthInput.parentNode.replaceChild(newLengthInput, lengthInput);
+                
+                newLengthInput.addEventListener('change', () => {
+                    console.log('Length changed:', newLengthInput.value);
+                    CURRENT[OPTION_NAMES.LENGTH] = newLengthInput.value;
+                });
             }
 
             // Hiking quantity listener
@@ -564,10 +562,8 @@ Ecwid.OnAPILoaded.add(function() {
                             const hikingQuantityPrice = isSingleStick ? SINGLE_HIKING_PRICE : 0;
                             
                             // Get and validate engraving inputs
-                            const engravingInput1 = document.querySelector(SELECTORS.ENGRAVING_1);
-                            const engravingInput2 = document.querySelector(SELECTORS.ENGRAVING_2);
-                            const engravingText1 = engravingInput1?.value || '';
-                            const engravingText2 = isSingleStick ? '' : (engravingInput2?.value || '');
+                            const engravingText1 = newEngravingInput1?.value || '';
+                            const engravingText2 = isSingleStick ? '' : (newEngravingInput2?.value || '');
 
                             // Calculate new character count
                             const charCount = engravingText1.length + engravingText2.length;
@@ -593,8 +589,8 @@ Ecwid.OnAPILoaded.add(function() {
                             if (engravingDiv2) {
                                 engravingDiv2.style.display = isSingleStick ? 'none' : 'block';
                                 
-                                if (isSingleStick && engravingInput2) {
-                                    engravingInput2.value = '';
+                                if (isSingleStick && newEngravingInput2) {
+                                    newEngravingInput2.value = '';
                                     CURRENT[OPTION_NAMES.ENGRAVING_2] = '';
                                 }
                             }
@@ -664,33 +660,93 @@ Ecwid.OnAPILoaded.add(function() {
 
           // Function to attach listeners to cart buttons
           function attachCartListeners() {
-            const addToBagDiv = document.querySelector(SELECTORS.ADD_TO_BAG);
-            const addMoreDiv = document.querySelector(SELECTORS.ADD_MORE);
-            
-            const targetDivs = [addToBagDiv, addMoreDiv].filter(div => div); // Get all available buttons
-            
-            targetDivs.forEach(targetDiv => {
-                // Remove existing button and its listeners
-                const oldButton = targetDiv.querySelector(".form-control__button");
-                if (oldButton) {
-                    // Create a new button with the same properties
-                    const newButton = oldButton.cloneNode(true);
-                    oldButton.parentNode.replaceChild(newButton, oldButton);
-                    
-                    // Add our listener to the new button
-                    newButton.addEventListener('click', async (event) => {
-                        console.log('Custom cart button clicked');
-                        event.preventDefault();
-                        event.stopPropagation(); // Prevent event bubbling
+            try {
+                const addToBagDiv = document.querySelector(SELECTORS.ADD_TO_BAG);
+                const addMoreDiv = document.querySelector(SELECTORS.ADD_MORE);
+                
+                const targetDivs = [addToBagDiv, addMoreDiv].filter(div => div);
+                
+                targetDivs.forEach(targetDiv => {
+                    const oldButton = targetDiv.querySelector(".form-control__button");
+                    if (oldButton) {
+                        const newButton = oldButton.cloneNode(true);
+                        oldButton.parentNode.replaceChild(newButton, oldButton);
                         
-                        try {
-                            await handleAddToCart(event);
-                        } catch (error) {
-                            console.error('Error handling cart update:', error);
+                        newButton.addEventListener('click', async (event) => {
+                            console.log('Custom cart button clicked');
+                            event.preventDefault();
+                            event.stopPropagation();
+                            
+                            try {
+                                await handleAddToCart(event);
+                            } catch (error) {
+                                console.error('Error handling cart update:', error);
+                            }
+                        }, true);
+                    }
+                });
+            } catch (error) {
+                console.error('Error in attachCartListeners:', error);
+            }
+          }
+
+          // Separate function for setting up price observer
+          function setupPriceObserver() {
+            const priceElement = document.querySelector(SELECTORS.PRICE_DISPLAY);
+            if (!priceElement) return;
+
+            // Disconnect existing price observers
+            observers
+                .filter(observer => observer._priceObserver)
+                .forEach(observer => observer.disconnect());
+            
+            // Remove them from the array
+            observers = observers.filter(observer => !observer._priceObserver);
+
+            const priceObserver = new MutationObserver((mutations) => {
+                // Add a flag to prevent recursive updates
+                if (priceObserver._updating) return;
+                
+                mutations.forEach((mutation) => {
+                    if (mutation.type === 'characterData' || mutation.type === 'childList') {
+                        const currentPrice = priceElement.textContent;
+                        const totalPrice = basePrice + 
+                            CURRENT_PRICE[OPTION_NAMES.STRAP] + 
+                            CURRENT_PRICE[OPTION_NAMES.GRIP_COLOR] + 
+                            CURRENT_PRICE[OPTION_NAMES.ENGRAVING] +
+                            (page.productId === 707464855 ? CURRENT_PRICE[OPTION_NAMES.HIKING_QUANTITY] : 0);
+                        
+                        const expectedPrice = `$${totalPrice.toFixed(2)}`;
+                        if (currentPrice !== expectedPrice) {
+                            console.log('Price update needed:', {
+                                current: currentPrice,
+                                expected: expectedPrice,
+                                base: basePrice,
+                                strap: CURRENT_PRICE[OPTION_NAMES.STRAP],
+                                grip: CURRENT_PRICE[OPTION_NAMES.GRIP_COLOR],
+                                engraving: CURRENT_PRICE[OPTION_NAMES.ENGRAVING]
+                            });
+                            
+                            // Set updating flag before making changes
+                            priceObserver._updating = true;
+                            priceElement.textContent = expectedPrice;
+                            // Clear updating flag after a short delay
+                            setTimeout(() => {
+                                priceObserver._updating = false;
+                            }, 0);
                         }
-                    }, true); // Use capture phase
-                }
+                    }
+                });
             });
+
+            priceObserver._priceObserver = true;
+            priceObserver.observe(priceElement, {
+                characterData: true,
+                childList: true,
+                subtree: true
+            });
+            
+            observers.push(priceObserver);
           }
 
           // Keep setupMutationObserver as its own function
@@ -843,12 +899,14 @@ Ecwid.OnAPILoaded.add(function() {
               
               await waitForElements();
               
-              initializeCurrentValues();
+              // Initialize in logical order
+              initializeCurrentValues();  // Set initial values
+              setupPriceObserver();      // Setup price monitoring
+              attachProductListeners();   // Product option listeners
+              attachStrapListeners();     // Strap-specific listeners
+              attachCartListeners();      // Cart-related listeners
               
-              // Setup listeners
-              attachCartListeners();
-              attachProductListeners();
-              attachStrapListeners();
+              // Setup mutation observer for dynamic content
               const debouncedAttachCartListeners = debounce(attachCartListeners, CART_UPDATE_DELAY);
               setupMutationObserver(debouncedAttachCartListeners);
               
