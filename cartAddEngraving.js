@@ -8,7 +8,7 @@
 
 Ecwid.OnAPILoaded.add(function() {
     // Store observers in an array
-    const observers = [];
+    let observers = [];
 
     Ecwid.OnPageLoaded.add(async function(page) {
       if (page.type === 'PRODUCT') {
