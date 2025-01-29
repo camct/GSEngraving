@@ -409,27 +409,29 @@ Ecwid.OnAPILoaded.add(function() {
             // Engraving inputs
             const engravingInput1 = document.querySelector(SELECTORS.ENGRAVING_1);
             const engravingInput2 = document.querySelector(SELECTORS.ENGRAVING_2);
+            let newEngravingInput1, newEngravingInput2;  // Declare at function scope
             console.log('Found engraving inputs:', {
                 input1: !!engravingInput1,
                 input2: !!engravingInput2
             });
 
-            let newEngravingInput1, newEngravingInput2;
-
             // Engraving 1
             if (engravingInput1) {
-              newEngravingInput1 = engravingInput1.cloneNode(true);
-              engravingInput1.parentNode.replaceChild(newEngravingInput1, engravingInput1);
-            }
-          
-            // Engraving 2
-            if (engravingInput2) {
-                newEngravingInput2 = engravingInput2.cloneNode(true);
-                engravingInput2.parentNode.replaceChild(newEngravingInput2, engravingInput2);
-            }
-            
-            // Clean up and reattach engraving 1 listener
-            if (newEngravingInput1) {                
+                newEngravingInput1 = engravingInput1.cloneNode(true);
+                engravingInput1.parentNode.replaceChild(newEngravingInput1, engravingInput1);
+                
+                // Clear placeholder on focus
+                newEngravingInput1.addEventListener('focus', () => {
+                    newEngravingInput1.placeholder = '';
+                });
+                
+                // Restore placeholder on blur if empty
+                newEngravingInput1.addEventListener('blur', () => {
+                    if (!newEngravingInput1.value) {
+                        newEngravingInput1.placeholder = 'Enter your engraving text here';
+                    }
+                });
+                
                 newEngravingInput1.addEventListener('input', () => {
                     console.log('Engraving 1 input changed:', newEngravingInput1.value);
                     const engravingText2 = newEngravingInput2 ? newEngravingInput2.value : '';
@@ -441,12 +443,6 @@ Ecwid.OnAPILoaded.add(function() {
                         return;
                     }
                     
-                    console.log('Engraving 1 calculation:', {
-                        text1: engravingText1,
-                        text2: engravingText2,
-                        totalChars: charCount,
-                        newPrice: engraveInd[charCount]
-                    });
                     CURRENT_PRICE[OPTION_NAMES.ENGRAVING] = engraveInd[charCount];
                     CURRENT[OPTION_NAMES.ENGRAVING_1] = engravingText1;
                     CURRENT[OPTION_NAMES.ENGRAVING] = customEngraving[charCount];
@@ -454,8 +450,23 @@ Ecwid.OnAPILoaded.add(function() {
                 });
             }
             
-            // Clean up and reattach engraving 2 listener
-            if (newEngravingInput2) {                
+            // Engraving 2
+            if (engravingInput2) {
+                newEngravingInput2 = engravingInput2.cloneNode(true);
+                engravingInput2.parentNode.replaceChild(newEngravingInput2, engravingInput2);
+                
+                // Clear placeholder on focus
+                newEngravingInput2.addEventListener('focus', () => {
+                    newEngravingInput2.placeholder = '';
+                });
+                
+                // Restore placeholder on blur if empty
+                newEngravingInput2.addEventListener('blur', () => {
+                    if (!newEngravingInput2.value) {
+                        newEngravingInput2.placeholder = 'Enter your engraving text here';
+                    }
+                });
+                
                 newEngravingInput2.addEventListener('input', () => {
                     const engravingText1 = newEngravingInput1 ? newEngravingInput1.value : '';
                     const engravingText2 = newEngravingInput2.value;
@@ -539,12 +550,24 @@ Ecwid.OnAPILoaded.add(function() {
                 const newLengthInput = lengthInput.cloneNode(true);
                 lengthInput.parentNode.replaceChild(newLengthInput, lengthInput);
                 
+                // Clear placeholder on focus
+                newLengthInput.addEventListener('focus', () => {
+                    newLengthInput.placeholder = '';
+                });
+                
+                // Restore placeholder on blur if empty
+                newLengthInput.addEventListener('blur', () => {
+                    if (!newLengthInput.value) {
+                        newLengthInput.placeholder = 'Enter your length here';
+                    }
+                });
+                
                 newLengthInput.addEventListener('change', () => {
                     console.log('Length changed:', newLengthInput.value);
                     CURRENT[OPTION_NAMES.LENGTH] = newLengthInput.value;
                 });
             }
-
+            
             // Hiking quantity listener
             if (page.productId === 707464855) {
                 console.log('Processing hiking quantity for product 707464855');
