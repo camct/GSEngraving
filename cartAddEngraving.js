@@ -82,8 +82,9 @@ Ecwid.OnAPILoaded.add(function() {
           const customEngraving = ['0', '1-6', '1-6', '1-6', '1-6', '1-6', '1-6', '7-8', '7-8', '9-10', '9-10', '11-12', '11-12', '13-14', '13-14', '15-16', '15-16', '17-18', '17-18', '19-20', '19-20', '21-22', '21-22', '23-24', '23-24', '25-26', '25-26', '27-28', '27-28', '29-30', '29-30', '31-32', '31-32', '33-34', '33-34', '35-36', '35-36', '37-38', '37-38', '39-40', '39-40'];
           const engraveInd=[0,18,18,18,18,18,18,19.75,19.75,21.5,21.5,23.25,23.25,25,25,26.75,26.75,28.5,28.5,30.25,30.25,32,32,33.75,33.75,35.5,35.5,37.25,37.25,39,39,40.75,40.75,42.5,42.5,44.25,44.25,46,46,47.75,47.75];
 
+          const INITIALIZED_OPTION_LISTENERS = new Set();
+
           // ------------------------- FUNCTIONS ------------------------- 
-          // Simplified updatePrice function
           function updatePrice() {
             try {
               console.log('Starting updatePrice()');
@@ -406,40 +407,59 @@ Ecwid.OnAPILoaded.add(function() {
           function attachProductListeners() {
             console.log('Starting attachProductListeners()');
             
+            // Helper function to safely add event listener only once
+            function addListenerOnce(elementId, element, eventType, handler) {
+                if (!element) return;
+                
+                const key = `${elementId}_${eventType}`;
+                
+                if (INITIALIZED_OPTION_LISTENERS.has(key)) {
+                    console.log(`Skipping ${key}, already initialized`);
+                    return;
+                }
+                
+                element.addEventListener(eventType, handler);
+                INITIALIZED_OPTION_LISTENERS.add(key);
+                console.log(`Added ${eventType} listener to ${elementId}`);
+            }
+
             // Engraving inputs
             const engravingInput1 = document.querySelector(SELECTORS.ENGRAVING_1);
             const engravingInput2 = document.querySelector(SELECTORS.ENGRAVING_2);
-            let newEngravingInput1, newEngravingInput2;  // Declare at function scope
             console.log('Found engraving inputs:', {
                 input1: !!engravingInput1,
                 input2: !!engravingInput2
             });
 
             // Engraving 1
-            if (engravingInput1) {
-                newEngravingInput1 = engravingInput1.cloneNode(true);
-                engravingInput1.parentNode.replaceChild(newEngravingInput1, engravingInput1);
+            if (engravingInput1 && !INITIALIZED_OPTION_LISTENERS.has('engraving1_placeholder')) {
+                const formControl1 = engravingInput1.closest('.form-control');
+                const placeholder1 = formControl1.querySelector('.form-control__placeholder');
+                if (placeholder1) {
+                    placeholder1.remove();
+                }
                 
-                // Clear placeholder on focus
-                newEngravingInput1.addEventListener('focus', () => {
-                    newEngravingInput1.placeholder = '';
+                // Set the input placeholder
+                engravingInput1.placeholder = 'Enter your engraving text here';
+                
+                addListenerOnce('engraving1', engravingInput1, 'focus', () => {
+                    engravingInput1.placeholder = '';
                 });
                 
-                // Restore placeholder on blur if empty
-                newEngravingInput1.addEventListener('blur', () => {
-                    if (!newEngravingInput1.value) {
-                        newEngravingInput1.placeholder = 'Enter your engraving text here';
+                addListenerOnce('engraving1', engravingInput1, 'blur', () => {
+                    if (!engravingInput1.value) {
+                        engravingInput1.placeholder = 'Enter your engraving text here';
                     }
                 });
                 
-                newEngravingInput1.addEventListener('input', () => {
-                    console.log('Engraving 1 input changed:', newEngravingInput1.value);
-                    const engravingText2 = newEngravingInput2 ? newEngravingInput2.value : '';
-                    const engravingText1 = newEngravingInput1.value;
+                addListenerOnce('engraving1', engravingInput1, 'input', () => {
+                    console.log('Engraving 1 input changed:', engravingInput1.value);
+                    const engravingText2 = engravingInput2 ? engravingInput2.value : '';
+                    const engravingText1 = engravingInput1.value;
                     const charCount = engravingText1.length + engravingText2.length;
                     
                     if (charCount > 40) {
-                        newEngravingInput1.value = newEngravingInput1.value.slice(0, -1);
+                        engravingInput1.value = engravingInput1.value.slice(0, -1);
                         return;
                     }
                     
@@ -451,29 +471,33 @@ Ecwid.OnAPILoaded.add(function() {
             }
             
             // Engraving 2
-            if (engravingInput2) {
-                newEngravingInput2 = engravingInput2.cloneNode(true);
-                engravingInput2.parentNode.replaceChild(newEngravingInput2, engravingInput2);
+            if (engravingInput2 && !INITIALIZED_OPTION_LISTENERS.has('engraving2_placeholder')) {
+                const formControl2 = engravingInput2.closest('.form-control');
+                const placeholder2 = formControl2.querySelector('.form-control__placeholder');
+                if (placeholder2) {
+                    placeholder2.remove();
+                }
                 
-                // Clear placeholder on focus
-                newEngravingInput2.addEventListener('focus', () => {
-                    newEngravingInput2.placeholder = '';
+                // Set the input placeholder
+                engravingInput2.placeholder = 'Enter your engraving text here';
+                
+                addListenerOnce('engraving2', engravingInput2, 'focus', () => {
+                    engravingInput2.placeholder = '';
                 });
                 
-                // Restore placeholder on blur if empty
-                newEngravingInput2.addEventListener('blur', () => {
-                    if (!newEngravingInput2.value) {
-                        newEngravingInput2.placeholder = 'Enter your engraving text here';
+                addListenerOnce('engraving2', engravingInput2, 'blur', () => {
+                    if (!engravingInput2.value) {
+                        engravingInput2.placeholder = 'Enter your engraving text here';
                     }
                 });
                 
-                newEngravingInput2.addEventListener('input', () => {
-                    const engravingText1 = newEngravingInput1 ? newEngravingInput1.value : '';
-                    const engravingText2 = newEngravingInput2.value;
+                addListenerOnce('engraving2', engravingInput2, 'input', () => {
+                    const engravingText1 = engravingInput1 ? engravingInput1.value : '';
+                    const engravingText2 = engravingInput2.value;
                     const charCount = engravingText1.length + engravingText2.length;
                     
                     if (charCount > 40) {
-                        newEngravingInput2.value = newEngravingInput2.value.slice(0, -1);
+                        engravingInput2.value = engravingInput2.value.slice(0, -1);
                         return;
                     }
                     
@@ -488,12 +512,9 @@ Ecwid.OnAPILoaded.add(function() {
             const gripColorSelect = document.querySelector(SELECTORS.GRIP_COLOR);
             console.log('Found grip color select:', !!gripColorSelect);
             
-            if (gripColorSelect) {
-                const newGripSelect = gripColorSelect.cloneNode(true);
-                gripColorSelect.parentNode.replaceChild(newGripSelect, gripColorSelect);
-                
-                newGripSelect.addEventListener('change', () => {
-                    const gripColorValue = newGripSelect.value;
+            if (gripColorSelect && !INITIALIZED_OPTION_LISTENERS.has('gripColor_change')) {
+                addListenerOnce('gripColor', gripColorSelect, 'change', () => {
+                    const gripColorValue = gripColorSelect.value;
                     const gripPrice = (gripColorValue === 'Cork') ? CORK_PRICE : 0;
                     
                     console.log('Grip color changed:', {
@@ -506,66 +527,65 @@ Ecwid.OnAPILoaded.add(function() {
                     CURRENT[OPTION_NAMES.GRIP_COLOR] = gripColorValue;
                     updatePrice();
                 });
+                
+                INITIALIZED_OPTION_LISTENERS.add('gripColor_change');
             }
 
             // Basket size listener
             const basketSizeSelect = document.querySelector(SELECTORS.BASKET_SIZE);
             console.log('Found basket size select:', !!basketSizeSelect);
             
-            if (basketSizeSelect) {
-                const newBasketSizeSelect = basketSizeSelect.cloneNode(true);
-                basketSizeSelect.parentNode.replaceChild(newBasketSizeSelect, basketSizeSelect);
-                
-                newBasketSizeSelect.addEventListener('change', () => {
+            if (basketSizeSelect && !INITIALIZED_OPTION_LISTENERS.has('basketSize_change')) {
+                addListenerOnce('basketSize', basketSizeSelect, 'change', () => {
                     console.log('Basket size changed:', {
-                        newValue: newBasketSizeSelect.value,
+                        newValue: basketSizeSelect.value,
                         previousValue: CURRENT[OPTION_NAMES.BASKET_SIZE]
                     });
-                    CURRENT[OPTION_NAMES.BASKET_SIZE] = newBasketSizeSelect.value;
+                    CURRENT[OPTION_NAMES.BASKET_SIZE] = basketSizeSelect.value;
                 });
+                
+                INITIALIZED_OPTION_LISTENERS.add('basketSize_change');
             }
 
             // Basket color listener
             const basketColorSelect = document.querySelector(SELECTORS.BASKET_COLOR);
             console.log('Found basket color select:', !!basketColorSelect);
             
-            if (basketColorSelect) {
-                const newBasketColorSelect = basketColorSelect.cloneNode(true);
-                basketColorSelect.parentNode.replaceChild(newBasketColorSelect, basketColorSelect);
-                
-                newBasketColorSelect.addEventListener('change', () => {
+            if (basketColorSelect && !INITIALIZED_OPTION_LISTENERS.has('basketColor_change')) {
+                addListenerOnce('basketColor', basketColorSelect, 'change', () => {
                     console.log('Basket color changed:', {
-                        newValue: newBasketColorSelect.value,
+                        newValue: basketColorSelect.value,
                         previousValue: CURRENT[OPTION_NAMES.BASKET_COLOR]
                     });
-                    CURRENT[OPTION_NAMES.BASKET_COLOR] = newBasketColorSelect.value;
+                    CURRENT[OPTION_NAMES.BASKET_COLOR] = basketColorSelect.value;
                 });
+                
+                INITIALIZED_OPTION_LISTENERS.add('basketColor_change');
             }
 
             // Length input listener
             const lengthInput = document.querySelector(SELECTORS.LENGTH);
             console.log('Found length input:', !!lengthInput);
             
-            if (lengthInput) {
-                const newLengthInput = lengthInput.cloneNode(true);
-                lengthInput.parentNode.replaceChild(newLengthInput, lengthInput);
-                
+            if (lengthInput && !INITIALIZED_OPTION_LISTENERS.has('length_change')) {
                 // Clear placeholder on focus
-                newLengthInput.addEventListener('focus', () => {
-                    newLengthInput.placeholder = '';
+                addListenerOnce('length', lengthInput, 'focus', () => {
+                    lengthInput.placeholder = '';
                 });
                 
                 // Restore placeholder on blur if empty
-                newLengthInput.addEventListener('blur', () => {
-                    if (!newLengthInput.value) {
-                        newLengthInput.placeholder = 'Enter your length here';
+                addListenerOnce('length', lengthInput, 'blur', () => {
+                    if (!lengthInput.value) {
+                        lengthInput.placeholder = 'Enter your length here';
                     }
                 });
                 
-                newLengthInput.addEventListener('change', () => {
-                    console.log('Length changed:', newLengthInput.value);
-                    CURRENT[OPTION_NAMES.LENGTH] = newLengthInput.value;
+                addListenerOnce('length', lengthInput, 'change', () => {
+                    console.log('Length changed:', lengthInput.value);
+                    CURRENT[OPTION_NAMES.LENGTH] = lengthInput.value;
                 });
+
+                INITIALIZED_OPTION_LISTENERS.add('length_change');
             }
             
             // Hiking quantity listener
@@ -573,8 +593,8 @@ Ecwid.OnAPILoaded.add(function() {
                 console.log('Processing hiking quantity for product 707464855');
                 const hikingQuantity = document.querySelector('.details-product-option--Quantity');
                 
-                if (hikingQuantity) {
-                    hikingQuantity.addEventListener('change', (event) => {
+                if (hikingQuantity && !INITIALIZED_OPTION_LISTENERS.has('hikingQuantity_change')) {
+                    addListenerOnce('hikingQuantity', hikingQuantity, 'change', (event) => {
                         try {
                             // Get the selected radio button and validate
                             const selectedRadio = hikingQuantity.querySelector(SELECTORS.HIKING_QUANTITY);
@@ -585,8 +605,8 @@ Ecwid.OnAPILoaded.add(function() {
                             const hikingQuantityPrice = isSingleStick ? SINGLE_HIKING_PRICE : 0;
                             
                             // Get and validate engraving inputs
-                            const engravingText1 = newEngravingInput1?.value || '';
-                            const engravingText2 = isSingleStick ? '' : (newEngravingInput2?.value || '');
+                            const engravingText1 = engravingInput1?.value || '';
+                            const engravingText2 = isSingleStick ? '' : (engravingInput2?.value || '');
 
                             // Calculate new character count
                             const charCount = engravingText1.length + engravingText2.length;
@@ -612,8 +632,8 @@ Ecwid.OnAPILoaded.add(function() {
                             if (engravingDiv2) {
                                 engravingDiv2.style.display = isSingleStick ? 'none' : 'block';
                                 
-                                if (isSingleStick && newEngravingInput2) {
-                                    newEngravingInput2.value = '';
+                                if (isSingleStick && engravingInput2) {
+                                    engravingInput2.value = '';
                                     CURRENT[OPTION_NAMES.ENGRAVING_2] = '';
                                 }
                             }
@@ -626,6 +646,8 @@ Ecwid.OnAPILoaded.add(function() {
                 } else {
                     console.warn('Hiking quantity element not found for product 707464855');
                 }
+
+                INITIALIZED_OPTION_LISTENERS.add('hikingQuantity_change');
             }
           }
 
@@ -945,6 +967,10 @@ Ecwid.OnAPILoaded.add(function() {
                 }
             });
             observers.length = 0; // Clear the array
+            
+            // Clear all initialization flags
+            INITIALIZED_OPTION_LISTENERS.clear();
+            console.log('Reset all initialization flags');
         }
     });
 });
