@@ -9,6 +9,7 @@
 Ecwid.OnAPILoaded.add(function() {
     // Store observers in an array
     let observers = [];
+    const INITIALIZED_OPTION_LISTENERS = new Set();
 
     Ecwid.OnPageLoaded.add(async function(page) {
       if (page.type === 'PRODUCT') {
@@ -81,8 +82,6 @@ Ecwid.OnAPILoaded.add(function() {
           // To change these, need to also go into Ecwid and change the individual product option prices
           const customEngraving = ['0', '1-6', '1-6', '1-6', '1-6', '1-6', '1-6', '7-8', '7-8', '9-10', '9-10', '11-12', '11-12', '13-14', '13-14', '15-16', '15-16', '17-18', '17-18', '19-20', '19-20', '21-22', '21-22', '23-24', '23-24', '25-26', '25-26', '27-28', '27-28', '29-30', '29-30', '31-32', '31-32', '33-34', '33-34', '35-36', '35-36', '37-38', '37-38', '39-40', '39-40'];
           const engraveInd=[0,18,18,18,18,18,18,19.75,19.75,21.5,21.5,23.25,23.25,25,25,26.75,26.75,28.5,28.5,30.25,30.25,32,32,33.75,33.75,35.5,35.5,37.25,37.25,39,39,40.75,40.75,42.5,42.5,44.25,44.25,46,46,47.75,47.75];
-
-          const INITIALIZED_OPTION_LISTENERS = new Set();
 
           // ------------------------- FUNCTIONS ------------------------- 
           function updatePrice() {
