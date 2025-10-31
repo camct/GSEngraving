@@ -25,9 +25,9 @@ Ecwid.OnAPILoaded.add(function() {
             GRIP_COLOR: 'Grip Color',
             BASKET_COLOR: 'Basket Color',
             STRAP: 'Strap',
-            ENGRAVING: 'Engraving',
+            ENGRAVING: 'Engraving Cost',
             LENGTH: 'Length (cm or inches)',
-            ENGRAVING_1: 'Engraving - Ski Pole 1',
+            ENGRAVING_1: 'Engraving',
             ENGRAVING_2: 'Engraving - Ski Pole 2'
           };
   
@@ -63,7 +63,7 @@ Ecwid.OnAPILoaded.add(function() {
 
           // DOM Selectors (frequently used)
           const SELECTORS = {
-            ENGRAVING_1: "input[aria-label='Engraving - Ski Pole 1']",
+            ENGRAVING_1: "input[aria-label='Engraving']",
             ENGRAVING_2: "input[aria-label='Engraving - Ski Pole 2']",
             LENGTH: "input[aria-label='Length (cm or inches)']",
             STRAP: "input[name='Strap']:checked",
