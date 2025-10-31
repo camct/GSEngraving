@@ -439,7 +439,7 @@ Ecwid.OnAPILoaded.add(function() {
                 }
                 
                 // Set the input placeholder
-                engravingInput1.placeholder = 'Enter your engraving text here';
+                engravingInput1.placeholder = 'Ski Pole 1';
                 
                 addListenerOnce('engraving1', engravingInput1, 'focus', () => {
                     engravingInput1.placeholder = '';
@@ -447,7 +447,7 @@ Ecwid.OnAPILoaded.add(function() {
                 
                 addListenerOnce('engraving1', engravingInput1, 'blur', () => {
                     if (!engravingInput1.value) {
-                        engravingInput1.placeholder = 'Enter your engraving text here';
+                        engravingInput1.placeholder = 'Ski Pole 1';
                     }
                 });
                 
@@ -478,7 +478,7 @@ Ecwid.OnAPILoaded.add(function() {
                 }
                 
                 // Set the input placeholder
-                engravingInput2.placeholder = 'Enter your engraving text here';
+                engravingInput2.placeholder = 'Ski Pole 2';
                 
                 addListenerOnce('engraving2', engravingInput2, 'focus', () => {
                     engravingInput2.placeholder = '';
@@ -486,7 +486,7 @@ Ecwid.OnAPILoaded.add(function() {
                 
                 addListenerOnce('engraving2', engravingInput2, 'blur', () => {
                     if (!engravingInput2.value) {
-                        engravingInput2.placeholder = 'Enter your engraving text here';
+                        engravingInput2.placeholder = 'Ski Pole 2';
                     }
                 });
                 
