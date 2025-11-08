@@ -13,7 +13,9 @@ Ecwid.OnAPILoaded.add(function() {
 
     Ecwid.OnPageLoaded.add(async function(page) {
       if (page.type === 'PRODUCT') {
-          const productIds = [707439498, 707449474, 707449472, 707464855, 707464853];
+          const productIds = [707439498];
+          // CanadaOG, CanadaTouring, CanadaRingTail, CanadaTrek, CanadaKids, UsaOG, UsaTouring, UsaRingTail, UsaTrek, UsaKids
+          // const officialProductIds = [793363376, 793363171, 793364072, 793364070, 793363373, 55001151, 74102380, 506210440, 570262509, 94782479];
   
           // Check if the current product ID is in the allowed list
           if (!productIds.includes(page.productId)) {return;}
@@ -25,7 +27,7 @@ Ecwid.OnAPILoaded.add(function() {
             GRIP_COLOR: 'Grip Color',
             BASKET_COLOR: 'Basket Color',
             STRAP: 'Strap',
-            ENGRAVING: 'Engraving Cost',
+            ENGRAVING: 'Engraving Count',
             LENGTH: 'Length (cm or inches)',
             ENGRAVING_1: 'Engraving',
             ENGRAVING_2: 'Engraving - Ski Pole 2'
