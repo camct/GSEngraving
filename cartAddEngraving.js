@@ -33,7 +33,7 @@ Ecwid.OnAPILoaded.add(function() {
             ENGRAVING_2: 'Engraving - Ski Pole 2'
           };
   
-          const BASE_PRICES = {707439498: 119.95, 707449474: 131.95, 707449472: 136.95, 707464855: 119.95, 707464853: 71.00};
+          const BASE_PRICES = {707439498: 119.95, 707449474: 131.95, 707449472: 136.95, 707464855: 119.95, 707464853: 71.00, 55001151: 119.95, 74102380: 131.95, 506210440: 136.95, 94782479: 71.00, 570262509: 119.95};
           const CORK_PRICE = 14;
           const SINGLE_HIKING_PRICE = -59.98;
           const STRAP_PRICES = {'None': -3, 'Adjustable': 10, 'Fixed': 0, 'mtnStrap': 19.99};
