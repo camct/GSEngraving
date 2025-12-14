@@ -13,7 +13,7 @@ Ecwid.OnAPILoaded.add(function() {
     Ecwid.OnPageLoaded.add(async function(page) {
       if (page.type === 'PRODUCT') {
           // Update productIds array with plunger product IDs
-          const productIds = [800713928]; // Add plunger product IDs here
+          const productIds = [800713928, 361714149]; // Add plunger product IDs here
   
           // Check if the current product ID is in the allowed list
           if (productIds.length > 0 && !productIds.includes(page.productId)) {return;}
