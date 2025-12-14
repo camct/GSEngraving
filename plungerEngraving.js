@@ -149,8 +149,8 @@ Ecwid.OnAPILoaded.add(function() {
               const product = getProduct();
               console.log('Product configuration:', product);
 
-              // Check engraving length
-              const engravingLength = product.options[OPTION_NAMES.ENGRAVING_TEXT]?.length || 0;
+              // Check engraving length (excluding spaces)
+              const engravingLength = product.options[OPTION_NAMES.ENGRAVING_TEXT]?.replace(/\s/g, '').length || 0;
 
               console.log('Engraving validation:', {
                 length: engravingLength
@@ -308,7 +308,7 @@ Ecwid.OnAPILoaded.add(function() {
                 addListenerOnce('engraving', engravingInput, 'input', () => {
                     console.log('Engraving input changed:', engravingInput.value);
                     const engravingText = engravingInput.value;
-                    const charCount = engravingText.length;
+                    const charCount = engravingText.replace(/\s/g, '').length;
                     
                     if (charCount > 40) {
                         engravingInput.value = engravingInput.value.slice(0, -1);
