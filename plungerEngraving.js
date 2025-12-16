@@ -610,6 +610,31 @@ Ecwid.OnAPILoaded.add(function() {
               const debouncedAttachCartListeners = debounce(attachCartListeners, CART_UPDATE_DELAY);
               setupMutationObserver(debouncedAttachCartListeners);
               
+              // Setup visibility change listener to recover from page dormancy
+              document.addEventListener('visibilitychange', () => {
+                  if (document.visibilityState === 'visible') {
+                      console.log('Page became visible - recovering from potential dormancy');
+                      
+                      // Clear listener tracking so they can be reattached
+                      INITIALIZED_OPTION_LISTENERS.clear();
+                      
+                      // Re-read all values from DOM
+                      initializeCurrentValues();
+                      
+                      // Reattach all listeners
+                      attachProductListeners();
+                      attachCartListeners();
+                      
+                      // Reset price observer
+                      setupPriceObserver();
+                      
+                      console.log('Recovery complete. Current state:', {
+                          CURRENT,
+                          CURRENT_PRICE
+                      });
+                  }
+              });
+              
           } catch (error) {
               console.error('Error during initialization:', error);
           }
