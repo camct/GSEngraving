@@ -9,6 +9,9 @@ Ecwid.OnAPILoaded.add(function() {
     // Store observers in an array
     let observers = [];
     const INITIALIZED_OPTION_LISTENERS = new Set();
+    // Store visibility listener reference for cleanup
+    let visibilityListener = null;
+
 
     Ecwid.OnPageLoaded.add(async function(page) {
       if (page.type === 'PRODUCT') {
@@ -611,30 +614,53 @@ Ecwid.OnAPILoaded.add(function() {
               setupMutationObserver(debouncedAttachCartListeners);
               
               // Setup visibility change listener to recover from page dormancy
-              document.addEventListener('visibilitychange', () => {
-                  if (document.visibilityState === 'visible') {
-                      console.log('Page became visible - recovering from potential dormancy');
-                      
-                      // Clear listener tracking so they can be reattached
-                      INITIALIZED_OPTION_LISTENERS.clear();
-                      
-                      // Re-read all values from DOM
-                      initializeCurrentValues();
-                      
-                      // Reattach all listeners
-                      attachProductListeners();
-                      attachCartListeners();
-                      
-                      // Reset price observer
-                      setupPriceObserver();
-                      
-                      console.log('Recovery complete. Current state:', {
-                          CURRENT,
-                          CURRENT_PRICE
-                      });
-                  }
-              });
-              
+              // Remove old listener if it exists to prevent duplicates
+              if (visibilityListener) {
+                document.removeEventListener('visibilitychange', visibilityListener);
+            }
+            
+            // Capture productIds in closure so it persists after callback ends
+            const allowedProductIds = [...productIds];
+            
+            // Create new listener
+            visibilityListener = () => {
+                if (document.visibilityState === 'visible') {
+                    // Extract product ID from current URL (format: .../p/74102380)
+                    const currentUrl = window.location.href;
+                    const urlMatch = currentUrl.match(/\/p\/(\d+)/);
+                    const currentProductId = urlMatch ? parseInt(urlMatch[1], 10) : null;
+                    
+                    // Check if current product ID is in the allowed list for THIS script
+                    if (!currentProductId || !allowedProductIds.includes(currentProductId)) {
+                        console.log('Not on valid product page (productId:', currentProductId, '), skipping recovery');
+                        return;
+                    }
+                    
+                    console.log('Page became visible - recovering from potential dormancy');
+                    
+                    // Clear listener tracking so they can be reattached
+                    INITIALIZED_OPTION_LISTENERS.clear();
+                    
+                    // Re-read all values from DOM
+                    initializeCurrentValues();
+                    
+                    // Reattach all listeners
+                    attachProductListeners();
+                    attachCartListeners();
+                    
+                    // Reset price observer
+                    setupPriceObserver();
+                    
+                    console.log('Recovery complete. Current state:', {
+                        CURRENT,
+                        CURRENT_PRICE
+                    });
+                }
+            };
+            
+            // Attach the new listener
+            document.addEventListener('visibilitychange', visibilityListener);
+           
           } catch (error) {
               console.error('Error during initialization:', error);
           }
