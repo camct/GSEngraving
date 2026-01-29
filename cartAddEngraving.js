@@ -675,14 +675,22 @@ Ecwid.OnAPILoaded.add(function() {
             CURRENT[OPTION_NAMES.BASKET_SIZE] = basketSizeSelect ? basketSizeSelect.value : null;
             CURRENT[OPTION_NAMES.BASKET_COLOR] = basketColorSelect ? basketColorSelect.value : null;
             CURRENT[OPTION_NAMES.LENGTH] = lengthInput ? lengthInput.value : null;
-            CURRENT[OPTION_NAMES.ENGRAVING] = '0'; // Initialize engraving cost to '0' string to match customEngraving array
-            CURRENT[OPTION_NAMES.ENGRAVING_1] = engravingInput1 ? engravingInput1.value : null;
-            CURRENT[OPTION_NAMES.ENGRAVING_2] = engravingInput2 ? engravingInput2.value : null;
+            // Initialize engraving count based on existing engraving text (excluding spaces)
+            const engravingText1Init = engravingInput1 ? (engravingInput1.value || '') : '';
+            const engravingText2Init = engravingInput2 ? (engravingInput2.value || '') : '';
+            const rawCharCountInit =
+                engravingText1Init.replace(/\s/g, '').length +
+                engravingText2Init.replace(/\s/g, '').length;
+            const maxEngravingIndex = Math.min(40, customEngraving.length - 1, engraveInd.length - 1);
+            const charCountInit = Math.min(maxEngravingIndex, rawCharCountInit);
+            CURRENT[OPTION_NAMES.ENGRAVING] = rawCharCountInit > 0 ? customEngraving[charCountInit] : '0';
+            CURRENT[OPTION_NAMES.ENGRAVING_1] = engravingInput1 ? engravingText1Init : null;
+            CURRENT[OPTION_NAMES.ENGRAVING_2] = engravingInput2 ? engravingText2Init : null;
 
             // Initialize prices
             CURRENT_PRICE[OPTION_NAMES.STRAP] = strapRadio ? STRAP_PRICES[strapRadio.value] || 0 : 0;
             CURRENT_PRICE[OPTION_NAMES.GRIP_COLOR] = gripColorSelect && gripColorSelect.value === 'Cork' ? CORK_PRICE : 0;
-            CURRENT_PRICE[OPTION_NAMES.ENGRAVING] = 0;
+            CURRENT_PRICE[OPTION_NAMES.ENGRAVING] = rawCharCountInit > 0 ? (engraveInd[charCountInit] || 0) : 0;
 
             // Add hiking quantity initialization if applicable
             if (page.productId === 707464855) {
