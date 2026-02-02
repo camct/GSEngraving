@@ -362,12 +362,17 @@ Ecwid.OnAPILoaded.add(function() {
 
             // Initialize current values
             CURRENT[OPTION_NAMES.GRIP_COLOR] = gripColorRadio ? gripColorRadio.value : null;
-            CURRENT[OPTION_NAMES.ENGRAVING] = '0'; // Initialize engraving cost to '0' string to match customEngraving array
-            CURRENT[OPTION_NAMES.ENGRAVING_TEXT] = engravingInput ? engravingInput.value : null;
+            // Initialize engraving count based on existing engraving text (excluding spaces)
+            const engravingTextInit = engravingInput ? (engravingInput.value || '') : '';
+            const rawCharCountInit = engravingTextInit.replace(/\s/g, '').length;
+            const maxEngravingIndex = Math.min(40, customEngraving.length - 1, engraveInd.length - 1);
+            const charCountInit = Math.min(maxEngravingIndex, rawCharCountInit);
+            CURRENT[OPTION_NAMES.ENGRAVING] = rawCharCountInit > 0 ? customEngraving[charCountInit] : '0';
+            CURRENT[OPTION_NAMES.ENGRAVING_TEXT] = engravingInput ? engravingTextInit : null;
 
             // Initialize prices
             CURRENT_PRICE[OPTION_NAMES.GRIP_COLOR] = gripColorRadio && gripColorRadio.value === 'Cork' ? CORK_PRICE : 0;
-            CURRENT_PRICE[OPTION_NAMES.ENGRAVING] = 0;
+            CURRENT_PRICE[OPTION_NAMES.ENGRAVING] = rawCharCountInit > 0 ? (engraveInd[charCountInit] || 0) : 0;
 
             console.log('Found form elements:', {
                 gripColor: !!gripColorRadio,
