@@ -35,7 +35,7 @@ Ecwid.OnAPILoaded.add(function() {
             ENGRAVING_2: 'Engraving - Ski Pole 2'
           };
           // 707439498 = test OG, 707449472 = ringtail torched, 707449472 = test ringtail torch single, 707464855 = test hiking sticks, 707464853 = test kids sticks,  55001151 = OG, 74102380 = touring, 506210440 = ringtail torched, 94782479 = kids sticks, 570262509 = trekking sticks 
-          const BASE_PRICES = {707439498: 134.95, 707449474: 146.95, 707449472: 151.95, 707464855: 134.95, 707464853: 86.00, 55001151: 134.95, 74102380: 146.95, 506210440: 151.95, 94782479: 86.00, 570262509: 134.95};
+          const BASE_PRICES = {707439498: 134.95, 707449474: 146.95, 707449472: 151.95, 707464855: 134.95, 707464853: 85.95, 55001151: 134.95, 74102380: 146.95, 506210440: 151.95, 94782479: 85.95, 570262509: 134.95};
           const CORK_PRICE = 14;
           const SINGLE_HIKING_PRICE = -59.98;
           const STRAP_PRICES = {'None': -3, 'Adjustable': 10, 'Fixed': 0, 'mtnStrap': 19.99};
